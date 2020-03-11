@@ -287,6 +287,7 @@ class CharucoBoardHandler:
             # calibration data
             self.detect_board_in_files(
                 calibration_data_directory, file_pattern, visualize)
+        return camera_matrix, dist_coeffs, error
 
 
 def main():
