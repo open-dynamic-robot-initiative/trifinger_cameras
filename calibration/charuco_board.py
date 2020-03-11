@@ -261,6 +261,10 @@ class CharucoBoardHandler:
                 loading the images and visualize again after the calibration
                 including the pose of the board.
         """
+        # clear old calibration data
+        self.camera_matrix = None
+        self.dist_coeffs = None
+
         all_corners, all_ids, image_size = self.detect_board_in_files(
             calibration_data_directory, file_pattern, visualize)
 
