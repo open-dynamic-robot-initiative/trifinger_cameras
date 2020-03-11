@@ -11,8 +11,8 @@ import numpy as np
 import cv2
 
 # Based on the following tutorials:
-# https://docs.opencv.org/3.4/df/d4a/tutorial_charuco_detection.html
-# https://docs.opencv.org/3.4/da/d13/tutorial_aruco_calibration.html
+# https://docs.opencv.org/4.2.0/df/d4a/tutorial_charuco_detection.html
+# https://docs.opencv.org/4.2.0/da/d13/tutorial_aruco_calibration.html
 
 
 class CharucoBoardHandler:
@@ -81,8 +81,8 @@ class CharucoBoardHandler:
         rvec = None
         tvec = None
 
-        # disable corner refinement method of marker detection as recommended
-        # in https://docs.opencv.org/3.4/df/d4a/tutorial_charuco_detection.html
+        # disable corner refinement of marker detection as recommended in
+        # https://docs.opencv.org/4.2.0/df/d4a/tutorial_charuco_detection.html
         params = cv2.aruco.DetectorParameters_create()
         params.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_NONE
 
