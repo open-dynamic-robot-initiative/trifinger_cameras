@@ -51,6 +51,11 @@ class CharucoBoardHandler:
         cv2.imwrite(filename, img)
 
     def detect_board(self, image):
+        charuco_corners = None
+        charuco_ids = None
+        rvec = None
+        tvec = None
+
         corners, ids, rejected = cv2.aruco.detectMarkers(image,
                                                          self.marker_dict)
 
@@ -60,27 +65,29 @@ class CharucoBoardHandler:
                     corners, ids, image, self.board,
                     cameraMatrix=self.camera_matrix,
                     distCoeffs=self.dist_coeffs)
-            return (charuco_corners, charuco_ids)
-        else:
-            return (None, None)
 
-    def visualize_board(self, image, charuco_corners, charuco_ids, wait_key):
+            if charuco_ids is not None and self.camera_matrix is not None:
+                valid, rvec, tvec = cv2.aruco.estimatePoseCharucoBoard(
+                    charuco_corners, charuco_ids, self.board,
+                    self.camera_matrix, self.dist_coeffs, None, None)
+                if not valid:
+                    rvec = None
+                    tvec = None
+
+        return charuco_corners, charuco_ids, rvec, tvec
+
+    def visualize_board(self, image, charuco_corners, charuco_ids, rvec, tvec,
+                        wait_key):
         debug_image = image
 
         if charuco_ids is not None:
             debug_image = cv2.aruco.drawDetectedCornersCharuco(
                 image, charuco_corners)
 
-            if self.camera_matrix is not None:
-                rvec = np.zeros(3)
-                tvec = np.zeros(3)
-                valid, rvec, tvec = cv2.aruco.estimatePoseCharucoBoard(
-                    charuco_corners, charuco_ids, self.board,
-                    self.camera_matrix, self.dist_coeffs, rvec, tvec)
-                if valid:
-                    debug_image = cv2.aruco.drawAxis(
-                        debug_image, self.camera_matrix,
-                        self.dist_coeffs, rvec, tvec, 0.1)
+            if rvec is not None and tvec is not None:
+                debug_image = cv2.aruco.drawAxis(
+                    debug_image, self.camera_matrix,
+                    self.dist_coeffs, rvec, tvec, 0.1)
 
         # Display the resulting frame
         cv2.imshow('image', debug_image)
@@ -95,13 +102,29 @@ class CharucoBoardHandler:
             # Capture frame-by-frame
             ret, frame = cap.read()
 
-            charuco_corners, charuco_ids = self.detect_board(frame)
-            if self.visualize_board(frame, charuco_corners, charuco_ids, 1):
+            charuco_corners, charuco_ids, rvec, tvec = self.detect_board(frame)
+            if self.visualize_board(frame, charuco_corners, charuco_ids, rvec,
+                                    tvec, 1):
                 break
 
         # When everything done, release the capture
         cap.release()
         cv2.destroyAllWindows()
+
+    def detect_board_in_image(self, filename, visualize=False):
+        assert filename is not None
+
+        img = cv2.imread(filename)
+        charuco_corners, charuco_ids, rvec, tvec = self.detect_board(img)
+        if charuco_ids is None:
+            print("No board detected")
+        else:
+            print("R: {}\nT: {}".format(rvec, tvec))
+            if visualize:
+                self.visualize_board(img, charuco_corners, charuco_ids,
+                                     rvec, tvec, 0)
+
+        return rvec, tvec
 
     def detect_boards_in_files(self, directory, file_pattern="*.jpeg",
                                visualize=False):
@@ -111,14 +134,14 @@ class CharucoBoardHandler:
         pattern = os.path.join(directory, file_pattern)
         for filename in glob.glob(pattern):
             img = cv2.imread(filename)
-            charuco_corners, charuco_ids = self.detect_board(img)
+            charuco_corners, charuco_ids, rvec, tvec = self.detect_board(img)
             if charuco_ids is not None:
                 all_corners.append(charuco_corners)
                 all_ids.append(charuco_ids)
 
                 if visualize:
                     self.visualize_board(img, charuco_corners, charuco_ids,
-                                         1000)
+                                         rvec, tvec, 1000)
             else:
                 print("Board not detected in {}".format(filename))
 
@@ -155,7 +178,9 @@ class CharucoBoardHandler:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("action", choices=["create_board", "detect",
+    parser.add_argument("action", choices=["create_board",
+                                           "detect_live",
+                                           "detect_image",
                                            "calibrate"])
     parser.add_argument("--filename", type=str)
     parser.add_argument("--calibration-data", type=str)
@@ -167,8 +192,10 @@ def main():
         if not args.filename:
             raise RuntimeError("Filename not specified.")
         handler.create_board(args.filename)
-    elif args.action == "detect":
+    elif args.action == "detect_live":
         handler.detect_board_and_visualize()
+    elif args.action == "detect_image":
+        handler.detect_board_in_image(args.filename, visualize=True)
     elif args.action == "calibrate":
         handler.calibrate(args.calibration_data, visualize=True)
 
