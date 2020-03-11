@@ -81,8 +81,13 @@ class CharucoBoardHandler:
         rvec = None
         tvec = None
 
-        corners, ids, rejected = cv2.aruco.detectMarkers(image,
-                                                         self.marker_dict)
+        # disable corner refinement method of marker detection as recommended
+        # in https://docs.opencv.org/3.4/df/d4a/tutorial_charuco_detection.html
+        params = cv2.aruco.DetectorParameters_create()
+        params.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_NONE
+
+        corners, ids, rejected = cv2.aruco.detectMarkers(
+            image, self.marker_dict, parameters=params)
 
         if ids is not None:
             num_corners, charuco_corners, charuco_ids = \
