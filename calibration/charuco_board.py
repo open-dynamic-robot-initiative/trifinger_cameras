@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Script for generating a Charuco Board, calibrating the camera with it
-and detecting it in a live stream."""
+"""Script for generating a Charuco Board, calibrating the camera with it and
+detecting it in images and camera streams.
+"""
 
 import argparse
 import os
@@ -15,8 +16,10 @@ import cv2
 
 
 class CharucoBoardHandler:
+    """Provides different actions using a Charuco Board."""
 
     def __init__(self):
+        """Initialize board with hard-coded parameters."""
         # use AprilTag 16h5 which contains 30 4x4 markers
         self.marker_dict = cv2.aruco.getPredefinedDictionary(
             cv2.aruco.DICT_APRILTAG_16h5)
@@ -42,7 +45,15 @@ class CharucoBoardHandler:
                                      [-0.00036141],
                                      [-0.06579839]])
 
-    def create_board(self, filename, dpi=300):
+    def save_board(self, filename, dpi=300):
+        """Save the board as image.
+
+        Args:
+            filename (str): Output filename.
+            dpi (int): Dots per inch.  Used to determine the pixel size of the
+                image based on the size of the squares.  Note that OpenCV does
+                not store the dpi value itself in the image file.
+        """
         cm_per_inch = 2.54
         size = (int(self.size_x * self.square_size * 100 * dpi / cm_per_inch),
                 int(self.size_y * self.square_size * 100 * dpi / cm_per_inch))
@@ -51,6 +62,20 @@ class CharucoBoardHandler:
         cv2.imwrite(filename, img)
 
     def detect_board(self, image):
+        """Detect the board in the given image.
+
+        Args:
+            image: Intput image.
+
+        Returns:
+            (tuple): Tuple containing:
+
+                charuco_corners: Pixel-positions of the detected corners.
+                charuco_ids: IDs of the detected corners.
+                rvec: Orientation of the board given as a Rodrigues vector.
+                    Only if camera matrix is set.
+                tvec: Translation of the board.  Only if camera matrix is set.
+        """
         charuco_corners = None
         charuco_ids = None
         rvec = None
@@ -78,6 +103,24 @@ class CharucoBoardHandler:
 
     def visualize_board(self, image, charuco_corners, charuco_ids, rvec, tvec,
                         wait_key):
+        """Visualize a detected board in the image.
+
+        Visualizes the detected board (corners and pose if given) in the image
+        and shows it using `cv2.imshow`.
+
+        Args:
+            image:  Image in which the board was detected.
+            charuco_corners:  See return value of `detect_board()`.
+            charuco_ids:  See return value of `detect_board()`.
+            rvec:  See return value of `detect_board()`.
+            tvec:  See return value of `detect_board()`.
+            wait_key:  Value that is passed to `cv2.waitKey()` when showing the
+                image.
+
+        Returns:
+            (bool):  True if the User pressed "q" in the image window,
+                otherwise False.
+        """
         debug_image = image
 
         if charuco_ids is not None:
@@ -96,8 +139,15 @@ class CharucoBoardHandler:
         else:
             return False
 
-    def detect_board_and_visualize(self):
-        cap = cv2.VideoCapture(0)
+    def detect_board_in_camera_stream(self, device=0):
+        """Show images from a camera and visualize the board if it is detected.
+
+        The function will loop forever.  Press "q" in the image window to stop.
+
+        Args:
+            device (int): ID of the video capture device (e.g. a webcam).
+        """
+        cap = cv2.VideoCapture(device)
         while(True):
             # Capture frame-by-frame
             ret, frame = cap.read()
@@ -112,6 +162,24 @@ class CharucoBoardHandler:
         cv2.destroyAllWindows()
 
     def detect_board_in_image(self, filename, visualize=False):
+        """Detect the board in the given image.
+
+        Returns the pose of the board if it is detected and also prints these
+        values to stdout.
+
+        Args:
+            filename (str):  Path to the image file.
+            visualize (bool):  If True, the result is visualized (press "q" to
+                close the image window).
+
+        Returns:
+            (tuple): Tuple containing
+
+                - rvec: Orientation of the board as a Rodrigues vector.
+                - tvec: Translation of the board.
+
+            Values are None if the board is not detected.
+        """
         assert filename is not None
 
         img = cv2.imread(filename)
@@ -126,8 +194,29 @@ class CharucoBoardHandler:
 
         return rvec, tvec
 
-    def detect_boards_in_files(self, directory, file_pattern="*.jpeg",
-                               visualize=False):
+    def detect_board_in_files(self, directory, file_pattern="*.jpeg",
+                              visualize=False):
+        """Detect the board in multiple files.
+
+        Searches the given directory for image files matching a specific
+        pattern and tries to detect the board in each of them.
+
+        Args:
+            directory (str):  Path to the directory containing the images.
+            file_pattern (str):  Pattern to match files in the given directory.
+            visualize (bool):  If True, each image is shown for one second,
+                visualizing the board if it is detected.
+
+        Returns:
+            (tuple): Tuple containing:
+
+                - all_corners:  List of lists of pixel-positions of detected
+                      charuco corners (one element per image).
+                - all_ids:  List of lists of IDs of detected charuco corners
+                      (one element per image).
+                - image_shape:  Tuple with width and height of the images
+                      (assumes all images have same size!)
+        """
         all_corners = []
         all_ids = []
 
@@ -152,7 +241,22 @@ class CharucoBoardHandler:
 
     def calibrate(self, calibration_data_directory, file_pattern="*.jpeg",
                   visualize=False):
-        all_corners, all_ids, image_size = self.detect_boards_in_files(
+        """Calibrate camera given a directory of images.
+
+        Loads images from the specified directory and uses them for
+        Charuco-based camera calibration.
+        The resulting coefficients are printed to stdout and stored internally
+        so they are used when detecting boards later on.
+
+        Args:
+            calibration_data_directory (str):  Directory containing the images.
+            file_pattern (str):  Pattern to match the image files in the given
+                directory.
+            visualize (bool):  If True, visualize the detected corners when
+                loading the images and visualize again after the calibration
+                including the pose of the board.
+        """
+        all_corners, all_ids, image_size = self.detect_board_in_files(
             calibration_data_directory, file_pattern, visualize)
 
         camera_matrix = np.zeros((3, 3))
@@ -172,18 +276,26 @@ class CharucoBoardHandler:
         if visualize:
             # load the boards again to re-detect the boards with camera
             # calibration data
-            self.detect_boards_in_files(
+            self.detect_board_in_files(
                 calibration_data_directory, file_pattern, visualize)
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    """Execute an action depending on arguments passed by the user."""
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=["create_board",
                                            "detect_live",
                                            "detect_image",
-                                           "calibrate"])
-    parser.add_argument("--filename", type=str)
-    parser.add_argument("--calibration-data", type=str)
+                                           "calibrate"],
+                        help="""Action that is executed.""")
+    parser.add_argument("--filename", type=str,
+                        help="""Filename used for saving or loading images
+                        (depending on the action).
+                        """)
+    parser.add_argument("--calibration-data", type=str,
+                        help="""Path to the calibration data directory (only
+                        used for action 'calibrate').
+                        """)
     args = parser.parse_args()
 
     handler = CharucoBoardHandler()
@@ -191,10 +303,12 @@ def main():
     if args.action == "create_board":
         if not args.filename:
             raise RuntimeError("Filename not specified.")
-        handler.create_board(args.filename)
+        handler.save_board(args.filename)
     elif args.action == "detect_live":
-        handler.detect_board_and_visualize()
+        handler.detect_board_in_camera_stream()
     elif args.action == "detect_image":
+        if not args.filename:
+            raise RuntimeError("Filename not specified.")
         handler.detect_board_in_image(args.filename, visualize=True)
     elif args.action == "calibrate":
         handler.calibrate(args.calibration_data, visualize=True)
