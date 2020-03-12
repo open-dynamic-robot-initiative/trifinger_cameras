@@ -21,7 +21,7 @@ class CharucoBoardPosePublisher:
 
     def __init__(self):
         self.cv_bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("image", Image, self.callback)
+        self.image_sub = rospy.Subscriber("/camera60/image_raw", Image, self.callback)
         self.pose_pub = rospy.Publisher("~pose", PoseStamped, queue_size=100)
 
     def callback(self, msg):
@@ -61,10 +61,10 @@ class CharucoBoardPosePublisher:
             pose.pose.position.x = tvec[0]
             pose.pose.position.y = tvec[1]
             pose.pose.position.z = tvec[2]
-            pose.pose.orientation.w = quaternion[0]
-            pose.pose.orientation.x = quaternion[1]
-            pose.pose.orientation.y = quaternion[2]
-            pose.pose.orientation.z = quaternion[3]
+            pose.pose.orientation.x = quaternion[0]
+            pose.pose.orientation.y = quaternion[1]
+            pose.pose.orientation.z = quaternion[2]
+            pose.pose.orientation.w = quaternion[3]
 
             self.pose_pub.publish(pose)
 
