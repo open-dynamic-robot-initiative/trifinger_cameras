@@ -4,10 +4,13 @@ detecting it in images and camera streams.
 """
 
 import argparse
-import os
 import glob
+import json
+import os
+import pickle
 
 import numpy as np
+
 #import cv2
 
 # annoying hack to get the proper version of cv2 (_not_ the ROS one)
@@ -17,7 +20,6 @@ if ros_path in sys.path:
     sys.path.remove(ros_path)
 import cv2
 sys.path.append(ros_path)
-
 
 
 # Based on the following tutorials:
@@ -197,15 +199,21 @@ class CharucoBoardHandler:
         """
         assert filename is not None
 
-        img = cv2.imread(filename)
-        charuco_corners, charuco_ids, rvec, tvec = self.detect_board(img)
-        if charuco_ids is None:
-            print("No board detected")
+        # load file depending on extension (pickle or image)
+        _, extension = os.path.splitext(filename)
+        if extension == ".pickle":
+            with open(filename, "rb") as file_handle:
+                img = pickle.load(file_handle, encoding="latin1")
         else:
-            print("R: {}\nT: {}".format(rvec, tvec))
+            img = cv2.imread(filename)
+
+        charuco_corners, charuco_ids, rvec, tvec = self.detect_board(img)
+        if charuco_ids is not None:
             if visualize:
                 self.visualize_board(img, charuco_corners, charuco_ids,
                                      rvec, tvec, 0)
+
+        print(json.dumps({"rvec": rvec.tolist(), "tvec": tvec.tolist()}))
 
         return rvec, tvec
 
@@ -315,6 +323,8 @@ def main():
                         help="""Path to the calibration data directory (only
                         used for action 'calibrate').
                         """)
+    parser.add_argument("--no-gui", action="store_true",
+                        help="""Set to disable any GUI-based visualization.""")
     args = parser.parse_args()
 
     handler = CharucoBoardHandler()
@@ -328,9 +338,9 @@ def main():
     elif args.action == "detect_image":
         if not args.filename:
             raise RuntimeError("Filename not specified.")
-        handler.detect_board_in_image(args.filename, visualize=True)
+        handler.detect_board_in_image(args.filename, visualize=not args.no_gui)
     elif args.action == "calibrate":
-        handler.calibrate(args.calibration_data, visualize=True)
+        handler.calibrate(args.calibration_data, visualize=not args.no_gui)
 
 
 if __name__ == "__main__":
