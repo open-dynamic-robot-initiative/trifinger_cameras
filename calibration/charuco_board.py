@@ -8,7 +8,17 @@ import os
 import glob
 
 import numpy as np
+#import cv2
+
+# annoying hack to get the proper version of cv2 (_not_ the ROS one)
+import sys
+ros_path = "/opt/ros/kinetic/lib/python2.7/dist-packages"
+if ros_path in sys.path:
+    sys.path.remove(ros_path)
 import cv2
+sys.path.append(ros_path)
+
+
 
 # Based on the following tutorials:
 # https://docs.opencv.org/4.2.0/df/d4a/tutorial_charuco_detection.html
