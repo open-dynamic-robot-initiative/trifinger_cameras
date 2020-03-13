@@ -11,6 +11,7 @@ import numpy as np
 import cv2
 
 import rospy
+import rospkg
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
@@ -38,7 +39,11 @@ class CharucoBoardPosePublisher:
             pickle.dump(cv_image, file_handle, pickle.HIGHEST_PROTOCOL)
 
         # call the script to detect the board
-        pose_json = subprocess.check_output(["./charuco_board.py",
+        script_path = os.path.join(
+            rospkg.RosPack().get_path("trifinger_cameras"),
+            "scripts",
+            "charuco_board.py")
+        pose_json = subprocess.check_output([script_path,
                                              "detect_image",
                                              "--no-gui",
                                              "--filename",
