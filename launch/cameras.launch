@@ -35,4 +35,7 @@
         <param name="enable_current_params_publisher" value="$(arg enable_current_params_publisher)"/>
     </node>
 
+    <!-- tf publishers for the camera frames -->
+    <include file="$(find trifinger_cameras)/launch/tf_cameras.launch" />
+
 </launch>

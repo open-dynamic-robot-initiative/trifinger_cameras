@@ -4,7 +4,7 @@ detecting it in images and camera streams.
 """
 import argparse
 
-from trifinger_cameras import CharucoBoardHandler
+from trifinger_cameras.charuco_board_handler import CharucoBoardHandler
 
 
 def main():
