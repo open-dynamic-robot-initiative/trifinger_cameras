@@ -206,7 +206,10 @@ class CharucoBoardHandler:
                 self.visualize_board(img, charuco_corners, charuco_ids,
                                      rvec, tvec, 0)
 
-        print(json.dumps({"rvec": rvec.tolist(), "tvec": tvec.tolist()}))
+        if rvec is not None:
+            print(json.dumps({"rvec": rvec.tolist(), "tvec": tvec.tolist()}))
+        else:
+            print(json.dumps({"rvec": None, "tvec": None}))
 
         return rvec, tvec
 

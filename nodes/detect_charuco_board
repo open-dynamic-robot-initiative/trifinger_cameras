@@ -17,13 +17,27 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from tf import transformations
 
+from trifinger_cameras import utils
 
 class CharucoBoardPosePublisher:
+    """Subscribes to an image topic and publishes pose of Charuco board.
+
+    Subscribes to an image topic and tries to detect the Charuco board in each
+    frame.  If it is detected, its pose is published using a PoseStamped
+    message that can easily be visualized in Rviz.
+
+    Subscribers:
+        image (sensor_msgs/Image): Input image.
+
+    Publishers:
+        ~pose (geometry_msgs/PoseStamped):  Pose of the Charuco board.
+            Published whenever it is detected in an image.
+    """
 
     def __init__(self):
         self.cv_bridge = CvBridge()
-        self.image_sub = rospy.Subscriber("/camera60/image_raw", Image, self.callback)
-        self.pose_pub = rospy.Publisher("~pose", PoseStamped, queue_size=100)
+        self.image_sub = rospy.Subscriber("image", Image, self.callback)
+        self.pose_pub = rospy.Publisher("~pose", PoseStamped, queue_size=10)
 
     def callback(self, msg):
         cv_image = self.cv_bridge.imgmsg_to_cv2(msg, "bgr8")
@@ -49,17 +63,15 @@ class CharucoBoardPosePublisher:
                                              "--filename",
                                              image_path])
         pose_dict = json.loads(pose_json)
-        rvec = np.asarray(pose_dict["rvec"])
-        tvec = np.asarray(pose_dict["tvec"])
+        rvec = pose_dict["rvec"]
+        tvec = pose_dict["tvec"]
 
         if rvec is not None:
-            # convert the Rodrigues vector to a quaternion
-            rotation_matrix = np.array([[0, 0, 0, 0],
-                                        [0, 0, 0, 0],
-                                        [0, 0, 0, 0],
-                                        [0, 0, 0, 1]])
-            rotation_matrix[:3, :3], _ = cv2.Rodrigues(rvec)
-            quaternion = transformations.quaternion_from_matrix(rotation_matrix)
+            # convert to pose message and publish
+            rvec = np.asarray(rvec)
+            tvec = np.asarray(tvec)
+
+            quaternion = utils.rodrigues_to_quaternion(rvec)
 
             pose = PoseStamped()
             pose.header = msg.header
@@ -78,7 +90,6 @@ def main():
     rospy.init_node("charuco_pose_publisher")
 
     node = CharucoBoardPosePublisher()  # noqa
-    print("init done")
     rospy.spin()
 
 
