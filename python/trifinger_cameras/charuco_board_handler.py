@@ -1,14 +1,19 @@
-#!/usr/bin/env python3
-"""Script for generating a Charuco Board, calibrating the camera with it and
-detecting it in images and camera streams.
-"""
-
-import argparse
-import os
+"""Class for Charuco board detection and camera calibration."""
 import glob
+import json
+import os
+import pickle
 
 import numpy as np
+
+# annoying hack to get the proper version of cv2 (_not_ the ROS one)
+import sys
+ros_path = "/opt/ros/kinetic/lib/python2.7/dist-packages"
+if ros_path in sys.path:
+    sys.path.remove(ros_path)
 import cv2
+sys.path.append(ros_path)
+
 
 # Based on the following tutorials:
 # https://docs.opencv.org/4.2.0/df/d4a/tutorial_charuco_detection.html
@@ -187,15 +192,24 @@ class CharucoBoardHandler:
         """
         assert filename is not None
 
-        img = cv2.imread(filename)
-        charuco_corners, charuco_ids, rvec, tvec = self.detect_board(img)
-        if charuco_ids is None:
-            print("No board detected")
+        # load file depending on extension (pickle or image)
+        _, extension = os.path.splitext(filename)
+        if extension == ".pickle":
+            with open(filename, "rb") as file_handle:
+                img = pickle.load(file_handle, encoding="latin1")
         else:
-            print("R: {}\nT: {}".format(rvec, tvec))
+            img = cv2.imread(filename)
+
+        charuco_corners, charuco_ids, rvec, tvec = self.detect_board(img)
+        if charuco_ids is not None:
             if visualize:
                 self.visualize_board(img, charuco_corners, charuco_ids,
                                      rvec, tvec, 0)
+
+        if rvec is not None:
+            print(json.dumps({"rvec": rvec.tolist(), "tvec": tvec.tolist()}))
+        else:
+            print(json.dumps({"rvec": None, "tvec": None}))
 
         return rvec, tvec
 
@@ -287,6 +301,7 @@ class CharucoBoardHandler:
             # calibration data
             self.detect_board_in_files(
                 calibration_data_directory, file_pattern, visualize)
+<<<<<<< HEAD:calibration/charuco_board.py
         return camera_matrix, dist_coeffs, error
 
 
@@ -326,3 +341,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+=======
+>>>>>>> origin/master:python/trifinger_cameras/charuco_board_handler.py
