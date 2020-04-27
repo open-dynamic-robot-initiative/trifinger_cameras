@@ -31,9 +31,10 @@ def rodrigues_to_quaternion(rvec):
     Returns:
         quaternion (array-like):  Given rotation as a quaternion `[x, y, z, w]`
     """
-    #this import is moved due to versions differences in python2 (ros)
-    #and python3 (opencv)
+    # this import is moved due to versions differences in python2 (ros)
+    # and python3 (opencv)
     import tf
+
     rvec = np.asarray(rvec)
 
     rotation_matrix = rodrigues_to_matrix(rvec)

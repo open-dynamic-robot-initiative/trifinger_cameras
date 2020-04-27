@@ -34,15 +34,18 @@ def main():
     # static_transform_publisher.
     camera_translation = tf.transformations.translation_from_matrix(invmat)
     camera_quaternion = tf.transformations.quaternion_from_matrix(invmat)
-    print(("{:.4f} " * 7).format(
-        camera_translation[0],
-        camera_translation[1],
-        camera_translation[2],
-        camera_quaternion[0],
-        camera_quaternion[1],
-        camera_quaternion[2],
-        camera_quaternion[3],
-    ))
+    print(
+        ("{:.4f} " * 7).format(
+            camera_translation[0],
+            camera_translation[1],
+            camera_translation[2],
+            camera_quaternion[0],
+            camera_quaternion[1],
+            camera_quaternion[2],
+            camera_quaternion[3],
+        )
+    )
+
 
 if __name__ == "__main__":
     main()
