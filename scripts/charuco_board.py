@@ -10,21 +10,30 @@ from trifinger_cameras.charuco_board_handler import CharucoBoardHandler
 def main():
     """Execute an action depending on arguments passed by the user."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=["create_board",
-                                           "detect_live",
-                                           "detect_image",
-                                           "calibrate"],
-                        help="""Action that is executed.""")
-    parser.add_argument("--filename", type=str,
-                        help="""Filename used for saving or loading images
+    parser.add_argument(
+        "action",
+        choices=["create_board", "detect_live", "detect_image", "calibrate"],
+        help="""Action that is executed.""",
+    )
+    parser.add_argument(
+        "--filename",
+        type=str,
+        help="""Filename used for saving or loading images
                         (depending on the action).
-                        """)
-    parser.add_argument("--calibration-data", type=str,
-                        help="""Path to the calibration data directory (only
+                        """,
+    )
+    parser.add_argument(
+        "--calibration-data",
+        type=str,
+        help="""Path to the calibration data directory (only
                         used for action 'calibrate').
-                        """)
-    parser.add_argument("--no-gui", action="store_true",
-                        help="""Set to disable any GUI-based visualization.""")
+                        """,
+    )
+    parser.add_argument(
+        "--no-gui",
+        action="store_true",
+        help="""Set to disable any GUI-based visualization.""",
+    )
     args = parser.parse_args()
 
     handler = CharucoBoardHandler()

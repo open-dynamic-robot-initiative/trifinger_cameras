@@ -6,24 +6,24 @@ import pickle
 import os
 
 import robot_interfaces
+import trifinger_cameras
 
 
 def main():
     argparser = argparse.ArgumentParser(description=__doc__)
-    argparser.add_argument( "--outdir", "-o", type=str,
-                           help="""Output directory.""")
+    argparser.add_argument(
+        "--outdir", "-o", type=str, help="""Output directory."""
+    )
     args = argparser.parse_args()
 
-    camera_data = robot_interfaces.tricamera.Data()
+    camera_data = trifinger_cameras.tricamera.Data()
     camera_names = ["camera60", "camera180", "camera300"]
-    camera_driver = robot_interfaces.tricamera.TriCameraDriver(
-        *camera_names
-    )
+    camera_driver = trifinger_cameras.tricamera.TriCameraDriver(*camera_names)
 
-    camera_backend = robot_interfaces.tricamera.Backend(
+    camera_backend = trifinger_cameras.tricamera.Backend(
         camera_driver, camera_data
     )
-    camera_frontend = robot_interfaces.tricamera.Frontend(camera_data)
+    camera_frontend = trifinger_cameras.tricamera.Frontend(camera_data)
 
     counter = 0
     while True:
@@ -41,8 +41,9 @@ def main():
 
         for i, name in enumerate(camera_names):
             filename = os.path.join(directory, name + ".png")
-            cv2.imwrite(filename, np.array(observation.cameras[i].image,
-                                           copy=False))
+            cv2.imwrite(
+                filename, np.array(observation.cameras[i].image, copy=False)
+            )
 
 
 if __name__ == "__main__":
