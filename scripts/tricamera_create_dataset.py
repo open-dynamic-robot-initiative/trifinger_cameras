@@ -2,10 +2,8 @@
 import argparse
 import numpy as np
 import cv2
-import pickle
 import os
 
-import robot_interfaces
 import trifinger_cameras
 
 
