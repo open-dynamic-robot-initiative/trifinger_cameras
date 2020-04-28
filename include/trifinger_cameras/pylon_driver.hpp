@@ -15,13 +15,13 @@
 #include <chrono>
 #include <iostream>
 
-#include <trifinger_cameras/camera_observation.hpp>
-#include <trifinger_cameras/sensor_driver.hpp>
-
 #include <pylon/PylonIncludes.h>
 #include <opencv2/opencv.hpp>
 
-namespace trfinger_cameras
+#include <robot_interfaces/sensors/sensor_driver.hpp>
+#include <trifinger_cameras/camera_observation.hpp>
+
+namespace trifinger_cameras
 {
 /**
  * @brief Driver for interacting with a camera via Pylon and storing

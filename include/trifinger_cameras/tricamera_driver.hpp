@@ -19,7 +19,8 @@ namespace trifinger_cameras
  * @brief Driver to create three instances of the PylonDriver
  * and get observations from them.
  */
-class TriCameraDriver : public SensorDriver<TriCameraObservation>
+class TriCameraDriver
+    : public robot_interfaces::SensorDriver<TriCameraObservation>
 {
 public:
     /**

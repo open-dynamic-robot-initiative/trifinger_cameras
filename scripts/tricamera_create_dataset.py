@@ -10,7 +10,7 @@ import trifinger_cameras
 def main():
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument(
-        "--outdir", "-o", type=str, help="""Output directory."""
+        "--outdir", "-o", type=str, required=True, help="""Output directory."""
     )
     args = argparser.parse_args()
 
