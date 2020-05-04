@@ -5,6 +5,7 @@ detecting it in images and camera streams.
 import argparse
 
 from trifinger_cameras.charuco_board_handler import CharucoBoardHandler
+from trifinger_cameras.camera_calibration_file import CameraCalibrationFile
 
 
 def main():
@@ -18,16 +19,21 @@ def main():
     parser.add_argument(
         "--filename",
         type=str,
-        help="""Filename used for saving or loading images
-                        (depending on the action).
-                        """,
+        help="""Filename used for saving or loading images (depending on the
+            action).
+        """,
     )
     parser.add_argument(
         "--calibration-data",
         type=str,
-        help="""Path to the calibration data directory (only
-                        used for action 'calibrate').
-                        """,
+        help="""Path to the calibration data directory (only used for action
+            'calibrate').
+        """,
+    )
+    parser.add_argument(
+        "--camera-info",
+        type=str,
+        help="""Camera info file, including intrinsic parameters.""",
     )
     parser.add_argument(
         "--no-gui",
@@ -36,7 +42,14 @@ def main():
     )
     args = parser.parse_args()
 
-    handler = CharucoBoardHandler()
+    camera_matrix = None
+    distortion_coeffs = None
+    if args.camera_info:
+        camera_info = CameraCalibrationFile(args.camera_info)
+        camera_matrix = camera_info["camera_matrix"]
+        distortion_coeffs = camera_info["distortion_coefficients"]
+
+    handler = CharucoBoardHandler(camera_matrix, distortion_coeffs)
 
     if args.action == "create_board":
         if not args.filename:
