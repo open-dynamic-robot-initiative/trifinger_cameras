@@ -49,7 +49,11 @@ def main():
             raise RuntimeError("Filename not specified.")
         handler.detect_board_in_image(args.filename, visualize=not args.no_gui)
     elif args.action == "calibrate":
-        handler.calibrate(args.calibration_data, visualize=not args.no_gui)
+        handler.calibrate(
+            args.calibration_data,
+            file_pattern=args.filename,
+            visualize=not args.no_gui,
+        )
 
 
 if __name__ == "__main__":

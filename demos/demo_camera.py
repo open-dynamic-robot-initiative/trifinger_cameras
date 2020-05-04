@@ -15,19 +15,28 @@ import trifinger_cameras
 
 def main():
     argparser = argparse.ArgumentParser(description=__doc__)
-    arg_action_group = argparser.add_mutually_exclusive_group(required=False)
-    arg_action_group.add_argument(
+    argparser.add_argument(
         "--pylon",
         action="store_true",
         help="""Access the camera via Pylon.  If not set, OpenCV is used.""",
     )
+    argparser.add_argument(
+        "--camera-id",
+        "-c",
+        default="",
+        help="""ID of the camera that is used.  If --pylon is set this refers
+            to the DeviceUserId, otherwise it is the index of the device.
+        """,
+    )
+
     args = argparser.parse_args()
 
     camera_data = trifinger_cameras.camera.Data()
     if args.pylon:
-        camera_driver = trifinger_cameras.camera.PylonDriver("cam_1")
+        camera_driver = trifinger_cameras.camera.PylonDriver(args.camera_id)
     else:
-        camera_driver = trifinger_cameras.camera.OpenCVDriver(0)
+        camera_id = int(args.camera_id) if args.camera_id else 0
+        camera_driver = trifinger_cameras.camera.OpenCVDriver(camera_id)
 
     camera_backend = trifinger_cameras.camera.Backend(
         camera_driver, camera_data
