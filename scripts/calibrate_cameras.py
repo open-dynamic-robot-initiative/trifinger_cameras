@@ -7,27 +7,23 @@ from trifinger_cameras.charuco_board_handler import CharucoBoardHandler
 import trifinger_cameras.utils as utils
 import argparse
 import numpy as np
-import matplotlib.pyplot as plt
 import cv2
 import yaml
-import ast
 
 
-def calibrate_intrinsic_parameters(
-    handler, calibration_data, calibration_results_file
-):
+def calibrate_intrinsic_parameters(calibration_data, calibration_results_file):
     """Calibrate intrinsic parameters of the camera given different images
     taken for the Charuco board from different views, the resulting parameters
     are saved to the provided filename.
 
     Args:
-        handler (CharucoBoardHandler):  Handler to the charuco board
-        calibration class.
         calibration_data (str):  directory of the stored images of the
         Charuco board.
         calibration_results_file (str):  filepath that will be used to write
         the calibration results in.
     """
+    handler = CharucoBoardHandler()
+
     camera_matrix, dist_coeffs, error = handler.calibrate(
         calibration_data, visualize=False
     )
@@ -45,15 +41,14 @@ def calibrate_intrinsic_parameters(
 
     with open(calibration_results_file, "w") as outfile:
         yaml.dump(
-            camera_info, outfile, default_flow_style=False, sort_keys=False
+            camera_info, outfile, default_flow_style=False,
         )
     return
 
 
 def calibrate_extrinsic_parameters(
-    handler,
     calibration_results_file,
-    churoco_centralized_image_filename,
+    charuco_centralized_image_filename,
     extrinsic_calibration_filename,
     impose_cube=True,
 ):
@@ -63,26 +58,35 @@ def calibrate_extrinsic_parameters(
         board for verification.
 
         Args:
-            handler (CharucoBoardHandler):  Handler to the charuco board
-            calibration class.
             calibration_results_file (str):  filepath that will be used to read
             the intrinsic calibration results.
-            churoco_centralized_image_filename (str): filename of the image
+            charuco_centralized_image_filename (str): filename of the image
             taken for the Charuco board centered at (0, 0, 0).
             extrinsic_calibration_filename (str):  filepath that will be used
             to write the extrinsic calibration results in.
             impose_cube (bool): boolean whether to output a virtual cube
             imposed on the first square of the board or not.
         """
-    rvec, tvec = handler.detect_board_in_image(
-        churoco_centralized_image_filename, visualize=False
-    )
     with open(calibration_results_file) as file:
-        calibration_data = yaml.full_load(file)
+        calibration_data = yaml.safe_load(file)
+
+    def config_matrix(data):
+        return np.array(data["data"]).reshape(data["rows"], data["cols"])
+
+    camera_matrix = config_matrix(calibration_data["camera_matrix"])
+    dist_coeffs = config_matrix(calibration_data["distortion_coefficients"])
+
+    handler = CharucoBoardHandler(camera_matrix, dist_coeffs)
+
+    rvec, tvec = handler.detect_board_in_image(
+        charuco_centralized_image_filename, visualize=False
+    )
+
     # projection_matrix = np.zeros((4, 4))
     projection_matrix = utils.rodrigues_to_matrix(rvec)
     projection_matrix[0:3, 3] = tvec[:, 0]
     projection_matrix[3, 3] = 1
+
     calibration_data["projection_matrix"] = dict()
     calibration_data["projection_matrix"]["rows"] = 4
     calibration_data["projection_matrix"]["cols"] = 4
@@ -92,10 +96,7 @@ def calibrate_extrinsic_parameters(
 
     with open(extrinsic_calibration_filename, "w") as outfile:
         yaml.dump(
-            calibration_data,
-            outfile,
-            default_flow_style=False,
-            sort_keys=False,
+            calibration_data, outfile, default_flow_style=False,
         )
 
     if impose_cube:
@@ -115,70 +116,38 @@ def calibrate_extrinsic_parameters(
             )
             * 0.04
         )
-        img = cv2.imread(churoco_centralized_image_filename)
+        point_pairs = (
+            (0, 4),
+            (1, 5),
+            (2, 6),
+            (3, 7),
+            (0, 1),
+            (0, 2),
+            (1, 3),
+            (2, 3),
+            (4, 5),
+            (4, 6),
+            (5, 7),
+            (6, 7),
+        )
+
+        img = cv2.imread(charuco_centralized_image_filename)
         imgpoints, _ = cv2.projectPoints(
-            new_object_points,
-            rvec,
-            tvec,
-            np.array(calibration_data["camera_matrix"]["data"]).reshape(3, 3),
-            np.array(
-                calibration_data["distortion_coefficients"]["data"]
-            ).reshape(1, 5),
+            new_object_points, rvec, tvec, camera_matrix, dist_coeffs,
         )
-        plt.plot(
-            [imgpoints[0, 0, 0], imgpoints[4, 0, 0]],
-            [imgpoints[0, 0, 1], imgpoints[4, 0, 1]],
-        )
-        plt.plot(
-            [imgpoints[1, 0, 0], imgpoints[5, 0, 0]],
-            [imgpoints[1, 0, 1], imgpoints[5, 0, 1]],
-        )
-        plt.plot(
-            [imgpoints[2, 0, 0], imgpoints[6, 0, 0]],
-            [imgpoints[2, 0, 1], imgpoints[6, 0, 1]],
-        )
-        plt.plot(
-            [imgpoints[3, 0, 0], imgpoints[7, 0, 0]],
-            [imgpoints[3, 0, 1], imgpoints[7, 0, 1]],
-        )
-        plt.plot(
-            [imgpoints[0, 0, 0], imgpoints[1, 0, 0]],
-            [imgpoints[0, 0, 1], imgpoints[1, 0, 1]],
-        )
-        plt.plot(
-            [imgpoints[0, 0, 0], imgpoints[2, 0, 0]],
-            [imgpoints[0, 0, 1], imgpoints[2, 0, 1]],
-        )
-        plt.plot(
-            [imgpoints[1, 0, 0], imgpoints[3, 0, 0]],
-            [imgpoints[1, 0, 1], imgpoints[3, 0, 1]],
-        )
-        plt.plot(
-            [imgpoints[2, 0, 0], imgpoints[3, 0, 0]],
-            [imgpoints[2, 0, 1], imgpoints[3, 0, 1]],
-        )
-        plt.plot(
-            [imgpoints[4, 0, 0], imgpoints[5, 0, 0]],
-            [imgpoints[4, 0, 1], imgpoints[5, 0, 1]],
-        )
-        plt.plot(
-            [imgpoints[4, 0, 0], imgpoints[6, 0, 0]],
-            [imgpoints[4, 0, 1], imgpoints[6, 0, 1]],
-        )
-        plt.plot(
-            [imgpoints[5, 0, 0], imgpoints[7, 0, 0]],
-            [imgpoints[5, 0, 1], imgpoints[7, 0, 1]],
-        )
-        plt.plot(
-            [imgpoints[6, 0, 0], imgpoints[7, 0, 0]],
-            [imgpoints[6, 0, 1], imgpoints[7, 0, 1]],
-        )
-        plt.scatter(
-            imgpoints[:, 0, 0], imgpoints[:, 0, 1], color="r", marker="x", s=5
-        )
-        plt.imshow(img)
-        plt.show()
-        return
+
+        for p1, p2 in point_pairs:
+            cv2.line(
+                img,
+                tuple(imgpoints[p1, 0]),
+                tuple(imgpoints[p2, 0]),
+                [200, 200, 0],
+                thickness=2,
+            )
+
+        cv2.imshow("Imposed Cube", img)
+        while cv2.waitKey(10) == -1:
+            pass
 
 
 def main():
@@ -218,7 +187,6 @@ def main():
     )
 
     args = parser.parse_args()
-    handler = CharucoBoardHandler()
 
     if args.action == "intrinsic_calibration":
         if not args.intrinsic_calibration_filename:
@@ -226,7 +194,7 @@ def main():
         if not args.calibration_data:
             raise RuntimeError("calibration_data not specified.")
         calibrate_intrinsic_parameters(
-            handler, args.calibration_data, args.intrinsic_calibration_filename
+            args.calibration_data, args.intrinsic_calibration_filename
         )
     elif args.action == "extrinsic_calibration":
         if not args.intrinsic_calibration_filename:
@@ -236,7 +204,6 @@ def main():
         if not args.image_view_filename:
             raise RuntimeError("image_view_filename not specified.")
         calibrate_extrinsic_parameters(
-            handler,
             args.intrinsic_calibration_filename,
             args.image_view_filename,
             args.extrinsic_calibration_filename,

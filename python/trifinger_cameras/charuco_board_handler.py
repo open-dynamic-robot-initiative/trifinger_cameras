@@ -25,7 +25,7 @@ sys.path.append(ros_path)
 class CharucoBoardHandler:
     """Provides different actions using a Charuco Board."""
 
-    def __init__(self):
+    def __init__(self, camera_matrix=None, dist_coeffs=None):
         """Initialize board with hard-coded parameters."""
         # use AprilTag 16h5 which contains 30 4x4 markers
         self.marker_dict = cv2.aruco.getPredefinedDictionary(
@@ -45,23 +45,8 @@ class CharucoBoardHandler:
             self.marker_dict,
         )
 
-        # Results of charuco calibration of one of the Basler cameras.
-        self.camera_matrix = np.array(
-            [
-                [589.60790224, 0.0, 366.49661804],
-                [0.0, 590.17907342, 297.98736395],
-                [0.0, 0.0, 1.0],
-            ]
-        )
-        self.dist_coeffs = np.array(
-            [
-                [-0.24896938],
-                [+0.13435385],
-                [+0.00032044],
-                [-0.00036141],
-                [-0.06579839],
-            ]
-        )
+        self.camera_matrix = camera_matrix
+        self.dist_coeffs = dist_coeffs
 
     def save_board(self, filename, dpi=300):
         """Save the board as image.
@@ -301,7 +286,7 @@ class CharucoBoardHandler:
     def calibrate(
         self,
         calibration_data_directory,
-        file_pattern="*.jpeg",
+        file_pattern="*.png",
         visualize=False,
     ):
         """Calibrate camera given a directory of images.
