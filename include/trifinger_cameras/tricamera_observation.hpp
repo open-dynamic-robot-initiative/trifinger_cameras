@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include <trifinger_cameras/camera_observation.hpp>
+#include "camera_observation.hpp"
 
 namespace trifinger_cameras
 {
@@ -18,8 +18,14 @@ namespace trifinger_cameras
  */
 struct TriCameraObservation
 {
-    typedef std::array<CameraObservation, 3> CameraArray;
-    CameraArray cameras;
+    std::array<CameraObservation, 3> cameras;
+
+    template <class Archive>
+    void serialize(Archive& archive)
+    {
+        archive(cameras);
+    }
+
 };
 
 }  // namespace trifinger_cameras

@@ -9,6 +9,7 @@
 #pragma once
 
 #include <opencv2/opencv.hpp>
+#include "cereal_cvmat.hpp"
 
 namespace trifinger_cameras
 {
@@ -19,10 +20,14 @@ namespace trifinger_cameras
  */
 struct CameraObservation
 {
-    typedef cv::Mat Image;
-    typedef double TimeStamp;
-    Image image;
-    TimeStamp time_stamp;
+    cv::Mat image;
+    double time_stamp;
+
+    template <class Archive>
+    void serialize(Archive& archive)
+    {
+        archive(image, time_stamp);
+    }
 };
 
 }  // namespace trifinger_cameras
