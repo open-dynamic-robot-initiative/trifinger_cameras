@@ -67,3 +67,20 @@ install(
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
 )
+
+
+# Tests
+if (CATKIN_ENABLE_TESTING)
+    catkin_add_gtest(test_serialize_cvmat tests/test_serialize_cvmat.cpp)
+    target_link_libraries(test_serialize_cvmat
+        ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+
+    catkin_add_gtest(test_camera_observation tests/test_camera_observation.cpp)
+    target_link_libraries(test_camera_observation
+        ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+
+    catkin_add_gtest(test_shared_memory_camera_data
+        tests/test_shared_memory_camera_data.cpp)
+    target_link_libraries(test_shared_memory_camera_data
+        ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} rt) # FIXME why is "rt" needed?
+endif()

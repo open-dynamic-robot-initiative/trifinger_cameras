@@ -28,6 +28,8 @@
 
     <exec_depend>pylon_camera</exec_depend>
 
+    <test_depend>rosunit</test_depend>
+
     <export>
     </export>
 </package>
