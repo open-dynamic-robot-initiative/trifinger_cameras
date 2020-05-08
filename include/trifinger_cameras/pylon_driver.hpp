@@ -100,7 +100,7 @@ public:
 
                 set_camera_configuration(camera_.GetNodeMap());
 
-                camera_.StartGrabbing();
+                camera_.StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
             }
         }
     }
@@ -121,6 +121,7 @@ public:
         CameraObservation image_frame;
         Pylon::CGrabResultPtr ptr_grab_result;
 
+        // FIXME 5second timeout?
         camera_.RetrieveResult(
             5000, ptr_grab_result, Pylon::TimeoutHandling_ThrowException);
         auto current_time = std::chrono::system_clock::now();
