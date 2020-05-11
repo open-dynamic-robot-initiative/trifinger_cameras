@@ -20,7 +20,12 @@ search_for_eigen()
 
 catkin_python_setup()
 
-catkin_package()
+catkin_package(
+    LIBRARIES
+        opencv_driver
+        pylon_driver
+        tricamera_driver
+)
 
 
 include_directories(
@@ -31,8 +36,17 @@ include_directories(
 )
 
 
+# Libraries
+add_library(opencv_driver src/opencv_driver.cpp)
+target_link_libraries(opencv_driver ${OpenCV_LIBRARIES})
+
+add_library(pylon_driver src/pylon_driver.cpp)
+target_link_libraries(pylon_driver ${OpenCV_LIBRARIES} ${Pylon_LIBRARIES})
+
+add_library(tricamera_driver src/tricamera_driver.cpp)
+target_link_libraries(tricamera_driver pylon_driver)
+
+
 # Python Bindings
-catkin_add_pybind11_module(py_camera_types
-    ${OpenCV_LIBRARIES} ${Pylon_LIBRARIES})
-catkin_add_pybind11_module(py_tricamera_types
-    ${OpenCV_LIBRARIES} ${Pylon_LIBRARIES})
+catkin_add_pybind11_module(py_camera_types opencv_driver pylon_driver)
+catkin_add_pybind11_module(py_tricamera_types tricamera_driver)
