@@ -15,7 +15,7 @@ import trifinger_cameras
 def main():
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument(
-        "--store_timestamps",
+        "--store-timestamps",
         type=str,
         help="""Pass --store_timestamps to dump the timestamps from the observations
              of the three cameras into a pickle file, followed by the name of
@@ -35,7 +35,7 @@ def main():
     camera_frontend = trifinger_cameras.tricamera.Frontend(camera_data)
     observations_timestamps_list = []
 
-    for _ in range(300):
+    while True:
         observation = camera_frontend.get_latest_observation()
         window_60 = "Image Stream camera60"
         window_180 = "Image Stream camera180"
@@ -49,7 +49,10 @@ def main():
         cv2.imshow(
             window_60, np.array(observation.cameras[2].image, copy=False)
         )
-        cv2.waitKey(3)
+
+        # stop if either "q" or ESC is pressed
+        if cv2.waitKey(3) in [ord("q"), 27]:  # 27 = ESC
+            break
 
         observations_timestamps_list.append(
             [
