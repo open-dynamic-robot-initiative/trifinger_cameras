@@ -9,8 +9,8 @@
 #include <chrono>
 #include <iostream>
 
+#include <ros/package.h>
 #include <opencv2/opencv.hpp>
-
 
 namespace trifinger_cameras
 {
@@ -114,21 +114,14 @@ CameraObservation PylonDriver::get_observation()
 
 void PylonDriver::set_camera_configuration(GenApi::INodeMap& nodemap)
 {
-    Pylon::CFloatParameter exposure_time(nodemap, "ExposureTime");
-    exposure_time.SetValue(1500);
+    const std::string filename = ros::package::getPath("trifinger_cameras") +
+                                 "/config/pylon_camera_settings.txt";
+    Pylon::CFeaturePersistence::Load(
+        filename.c_str(), &camera_.GetNodeMap(), true);
 
-    // Pylon::CBooleanParameter enable_frame_rate(nodemap,
-    // "EnableAcquisitionFrameRate");
-    // enable_frame_rate.SetValue(true);
-
-    Pylon::CFloatParameter frame_rate(nodemap, "AcquisitionFrameRate");
-    frame_rate.SetValue(100);
-
-    Pylon::CEnumParameter(nodemap, "BalanceWhiteAuto").SetValue("Once");
-
-    //Pylon::CFeaturePersistence::Save("/tmp/camera_settings.xml",
+    // Use the following command to generate a config file with the current
+    // settings:
+    // Pylon::CFeaturePersistence::Save("/tmp/camera_settings.txt",
     //                                 &camera_.GetNodeMap());
-    // Pylon::CFeaturePersistence::Load( Filename, &camera.GetNodeMap(),
-    // true );
 }
 }
