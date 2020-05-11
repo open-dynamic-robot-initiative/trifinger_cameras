@@ -47,7 +47,10 @@ def main():
         observation = camera_frontend.get_latest_observation()
         window_name = "Image Stream"
         cv2.imshow(window_name, np.array(observation.image, copy=False))
-        cv2.waitKey(3)
+
+        # stop if either "q" or ESC is pressed
+        if cv2.waitKey(3) in [ord("q"), 27]:  # 27 = ESC
+            break
 
 
 if __name__ == "__main__":

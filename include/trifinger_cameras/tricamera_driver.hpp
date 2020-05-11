@@ -2,10 +2,8 @@
  * @file
  * @brief Wrapper on the Pylon Driver to synchronise three pylon dependent
  * cameras.
- * @copyright 2020, New York University, Max Planck Gesellschaft. All rights
- *            reserved.
+ * @copyright 2020, Max Planck Gesellschaft. All rights reserved.
  * @license BSD 3-clause
- *
  */
 #pragma once
 
@@ -30,24 +28,13 @@ public:
      */
     TriCameraDriver(const std::string& device_id_1,
                     const std::string& device_id_2,
-                    const std::string& device_id_3)
-        : cam_1(device_id_1), cam_2(device_id_2), cam_3(device_id_3)
-    {
-    }
+                    const std::string& device_id_3);
+
     /**
      * @brief Get the latest observation from the three cameras
      * @return TricameraObservation
      */
-    TriCameraObservation get_observation()
-    {
-        TriCameraObservation tricam_obs;
-
-        tricam_obs.cameras[0] = cam_1.get_observation();
-        tricam_obs.cameras[1] = cam_2.get_observation();
-        tricam_obs.cameras[2] = cam_3.get_observation();
-
-        return tricam_obs;
-    }
+    TriCameraObservation get_observation();
 
 private:
     PylonDriver cam_1, cam_2, cam_3;
