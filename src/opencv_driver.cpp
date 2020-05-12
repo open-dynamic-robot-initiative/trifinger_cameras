@@ -13,10 +13,8 @@
 
 namespace trifinger_cameras
 {
-OpenCVDriver::OpenCVDriver(int device_id)
+OpenCVDriver::OpenCVDriver(int device_id) : video_capture_(device_id)
 {
-    cv::VideoCapture cap(device_id);
-    video_capture_ = cap;
 }
 
 CameraObservation OpenCVDriver::get_observation()
@@ -27,19 +25,29 @@ CameraObservation OpenCVDriver::get_observation()
     }
     else
     {
-#ifdef VERBOSE
-        std::cout << "Succeeded in accessing camera stream!" << std::endl;
-#endif
-        CameraObservation image_frame;
-        cv::Mat frame;
-        auto current_time = std::chrono::system_clock::now();
+        CameraObservation obs;
 
-        video_capture_ >> frame;
-        image_frame.image = frame;
-        image_frame.time_stamp =
+        video_capture_ >> obs.image;
+        auto current_time = std::chrono::system_clock::now();
+        obs.time_stamp =
             std::chrono::duration<double>(current_time.time_since_epoch())
                 .count();
-        return image_frame;
+
+        // make sure the image have the expected size
+        if (obs.image.rows != obs.height || obs.image.cols != obs.width)
+        {
+            static bool printed_warning = false;
+            if (!printed_warning)
+            {
+                std::cout << "WARNING: Size of captured image does not match "
+                             "with expected observation.  Images are rescaled."
+                          << std::endl;
+                printed_warning = true;
+            }
+            cv::resize(obs.image, obs.image, cv::Size(obs.width, obs.height));
+        }
+
+        return obs;
     }
 }
 }  // namespace trifinger_cameras
