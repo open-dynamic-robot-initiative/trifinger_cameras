@@ -14,7 +14,15 @@ find_package(OpenCV REQUIRED)
 find_package(Pylon)
 if (${Pylon_FOUND})
     add_definitions(-DPylon_FOUND)
+
+    # Set library names to variables, so we can use the variable instead of the
+    # direct name below.  In case, Pylon drivers are not built, the variables
+    # will be empty and thus not cause trouble when used for linking etc.
+    set(pylon_driver pylon_driver)
+    set(tricamera_driver tricamera_driver)
 endif()
+
+
 
 search_for_eigen()
 
@@ -24,8 +32,8 @@ catkin_python_setup()
 catkin_package(
     LIBRARIES
         opencv_driver
-        pylon_driver
-        tricamera_driver
+        ${pylon_driver}
+        ${tricamera_driver}
 )
 
 
@@ -41,17 +49,20 @@ include_directories(
 add_library(opencv_driver src/opencv_driver.cpp)
 target_link_libraries(opencv_driver ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
-add_library(pylon_driver src/pylon_driver.cpp)
-target_link_libraries(pylon_driver
-    ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${Pylon_LIBRARIES})
+if (${Pylon_FOUND})
+    add_library(${pylon_driver} src/pylon_driver.cpp)
+    target_link_libraries(${pylon_driver}
+        ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${Pylon_LIBRARIES})
 
-add_library(tricamera_driver src/tricamera_driver.cpp)
-target_link_libraries(tricamera_driver pylon_driver)
+    add_library(${tricamera_driver} src/tricamera_driver.cpp)
+    target_link_libraries(${tricamera_driver} pylon_driver)
+endif()
 
 
 # Python Bindings
-catkin_add_pybind11_module(py_camera_types opencv_driver pylon_driver)
-catkin_add_pybind11_module(py_tricamera_types tricamera_driver)
+catkin_add_pybind11_module(py_camera_types opencv_driver ${pylon_driver})
+catkin_add_pybind11_module(py_tricamera_types
+    ${OpenCV_LIBRARIES} ${tricamera_driver})
 
 
 # Installation
@@ -62,7 +73,7 @@ install(DIRECTORY config/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config)
 
 install(
-    TARGETS opencv_driver pylon_driver tricamera_driver
+    TARGETS opencv_driver ${pylon_driver} ${tricamera_driver}
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}

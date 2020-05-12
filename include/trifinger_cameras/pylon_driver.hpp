@@ -12,6 +12,10 @@
 
 #pragma once
 
+#ifndef Pylon_FOUND
+#error Cannot use PylonDriver without Pylon.
+#endif
+
 #include <pylon/PylonIncludes.h>
 
 #include <robot_interfaces/sensors/sensor_driver.hpp>
