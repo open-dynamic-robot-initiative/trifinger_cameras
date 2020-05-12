@@ -7,7 +7,7 @@
 
     <node name="camera60" pkg="pylon_camera" type="pylon_camera_node" output="screen"
           respawn="$(arg respawn)">
-        <rosparam command="load" file="$(find trifinger_pylon)/config/default.yaml" />
+        <rosparam command="load" file="$(find trifinger_cameras)/config/default.yaml" />
         <param name="device_user_id" value="camera60" />
         <param name="camera_frame" value="camera60" />
         <param name="startup_user_set" value="$(arg startup_user_set)"/>
@@ -17,7 +17,7 @@
 
     <node name="camera180" pkg="pylon_camera" type="pylon_camera_node" output="screen"
           respawn="$(arg respawn)">
-        <rosparam command="load" file="$(find trifinger_pylon)/config/default.yaml" />
+        <rosparam command="load" file="$(find trifinger_cameras)/config/default.yaml" />
         <param name="device_user_id" value="camera180" />
         <param name="camera_frame" value="camera180" />
         <param name="startup_user_set" value="$(arg startup_user_set)"/>
@@ -27,7 +27,7 @@
 
     <node name="camera300" pkg="pylon_camera" type="pylon_camera_node" output="screen"
           respawn="$(arg respawn)">
-        <rosparam command="load" file="$(find trifinger_pylon)/config/default.yaml" />
+        <rosparam command="load" file="$(find trifinger_cameras)/config/default.yaml" />
         <param name="device_user_id" value="camera300" />
         <param name="camera_frame" value="camera300" />
         <param name="startup_user_set" value="$(arg startup_user_set)"/>
