@@ -24,7 +24,7 @@ def main():
     )
     args = argparser.parse_args()
 
-    camera_data = trifinger_cameras.tricamera.Data()
+    camera_data = trifinger_cameras.tricamera.SingleProcessData()
     camera_driver = trifinger_cameras.tricamera.TriCameraDriver(
         "camera60", "camera180", "camera300"
     )
