@@ -97,6 +97,19 @@ CameraObservation PylonDriver::get_observation()
 
     if (ptr_grab_result->GrabSucceeded())
     {
+        // ensure that the actual image size matches with the expected one
+        if (ptr_grab_result->GetHeight() != image_frame.height ||
+            ptr_grab_result->GetWidth() != image_frame.width)
+        {
+            std::stringstream msg;
+            msg << "Size of grabbed frame (" << ptr_grab_result->GetWidth()
+                << "x" << ptr_grab_result->GetHeight()
+                << ") does not match expected size of observation ("
+                << image_frame.width << "x" << image_frame.height << ").";
+
+            throw std::length_error(msg.str());
+        }
+
         format_converter_.Convert(pylon_image_, ptr_grab_result);
         // FIXME: clarify if this creates a copy or references the memory of
         // pylon_image_.  In latter case, we have to be careful!
@@ -124,4 +137,4 @@ void PylonDriver::set_camera_configuration(GenApi::INodeMap& nodemap)
     // Pylon::CFeaturePersistence::Save("/tmp/camera_settings.txt",
     //                                 &camera_.GetNodeMap());
 }
-}
+}  // namespace trifinger_cameras
