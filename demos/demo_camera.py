@@ -28,11 +28,16 @@ def main():
             to the DeviceUserId, otherwise it is the index of the device.
         """,
     )
+    argparser.add_argument(
+        "--record",
+        type=str,
+        help="""Path to file in which camera data is recorded."""
+    )
 
     args = argparser.parse_args()
 
     camera_data = trifinger_cameras.camera.SingleProcessData()
-    #camera_data = trifinger_cameras.camera.MultiProcessData("cam", True, 10)
+    # camera_data = trifinger_cameras.camera.MultiProcessData("cam", True, 10)
 
     if args.pylon:
         camera_driver = trifinger_cameras.camera.PylonDriver(args.camera_id)
@@ -45,6 +50,10 @@ def main():
     )
     camera_frontend = trifinger_cameras.camera.Frontend(camera_data)
 
+    if args.record:
+        logger = trifinger_cameras.camera.Logger(camera_data, 10000)
+        logger.start()
+
     while True:
         observation = camera_frontend.get_latest_observation()
         window_name = "Image Stream"
@@ -53,6 +62,10 @@ def main():
         # stop if either "q" or ESC is pressed
         if cv2.waitKey(3) in [ord("q"), 27]:  # 27 = ESC
             break
+
+    if args.record:
+        print("Save recorded data to file {}".format(args.record))
+        logger.stop_and_save(args.record)
 
 
 if __name__ == "__main__":
