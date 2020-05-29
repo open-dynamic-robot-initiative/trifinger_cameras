@@ -9,7 +9,7 @@
 #pragma once
 
 #include <opencv2/opencv.hpp>
-#include "cereal_cvmat.hpp"
+#include <serialization_utils/cereal_cvmat.hpp>
 
 namespace trifinger_cameras
 {
