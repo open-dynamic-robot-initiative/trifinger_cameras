@@ -7,6 +7,7 @@ find_package(catkin REQUIRED
     roslib
     pybind11_catkin
     robot_interfaces
+    serialization_utils
 )
 
 find_package(OpenCV REQUIRED)
@@ -82,10 +83,6 @@ install(
 
 # Tests
 if (CATKIN_ENABLE_TESTING)
-    catkin_add_gtest(test_serialize_cvmat tests/test_serialize_cvmat.cpp)
-    target_link_libraries(test_serialize_cvmat
-        ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
-
     catkin_add_gtest(test_camera_observation tests/test_camera_observation.cpp)
     target_link_libraries(test_camera_observation
         ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
