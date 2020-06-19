@@ -31,6 +31,7 @@ search_for_eigen()
 catkin_python_setup()
 
 catkin_package(
+    INCLUDE_DIRS include
     LIBRARIES
         opencv_driver
         ${pylon_driver}
