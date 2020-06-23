@@ -37,6 +37,7 @@ catkin_package(
         opencv_driver
         ${pylon_driver}
         ${tricamera_driver}
+        pybullet_tricamera_driver
 )
 
 
@@ -71,11 +72,15 @@ if (${Pylon_FOUND})
     target_link_libraries(${tricamera_driver} pylon_driver)
 endif()
 
+add_library(pybullet_tricamera_driver src/pybullet_tricamera_driver.cpp)
+target_link_libraries(pybullet_tricamera_driver
+    ${catkin_LIBRARIES} camera_observations)
+
 
 # Python Bindings
 catkin_add_pybind11_module(py_camera_types opencv_driver ${pylon_driver})
 catkin_add_pybind11_module(py_tricamera_types
-    ${OpenCV_LIBRARIES} ${tricamera_driver})
+    ${OpenCV_LIBRARIES} ${tricamera_driver} pybullet_tricamera_driver)
 
 
 # Installation

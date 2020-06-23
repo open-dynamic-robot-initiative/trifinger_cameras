@@ -5,6 +5,7 @@
  * @license BSD 3-clause
  */
 
+#include <trifinger_cameras/pybullet_tricamera_driver.hpp>
 #include <trifinger_cameras/tricamera_observation.hpp>
 #ifdef Pylon_FOUND
 #include <trifinger_cameras/tricamera_driver.hpp>
@@ -33,4 +34,11 @@ PYBIND11_MODULE(py_tricamera_types, m)
     pybind11::class_<TriCameraObservation>(m, "TriCameraObservation")
         .def(pybind11::init<>())
         .def_readwrite("cameras", &TriCameraObservation::cameras);
+
+    pybind11::class_<PyBulletTriCameraDriver,
+                     std::shared_ptr<PyBulletTriCameraDriver>,
+                     SensorDriver<TriCameraObservation>>(
+        m, "PyBulletTriCameraDriver")
+        .def(pybind11::init<>())
+        .def("get_observation", &PyBulletTriCameraDriver::get_observation);
 }
