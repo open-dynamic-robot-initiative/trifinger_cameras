@@ -29,7 +29,7 @@ CameraObservation OpenCVDriver::get_observation()
 
         video_capture_ >> obs.image;
         auto current_time = std::chrono::system_clock::now();
-        obs.time_stamp =
+        obs.timestamp =
             std::chrono::duration<double>(current_time.time_since_epoch())
                 .count();
 
