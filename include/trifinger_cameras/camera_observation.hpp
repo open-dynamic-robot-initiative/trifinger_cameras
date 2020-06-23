@@ -1,8 +1,7 @@
 /**
  * @file
  * @brief Defines the observation structure to be used by any camera.
- * @copyright 2020, New York University, Max Planck Gesellschaft. All rights
- *            reserved.
+ * @copyright 2020, Max Planck Gesellschaft. All rights reserved.
  * @license BSD 3-clause
  */
 

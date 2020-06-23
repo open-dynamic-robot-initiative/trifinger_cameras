@@ -1,8 +1,7 @@
 /**
  * @file
  * @brief Create bindings for camera sensors
- * @copyright 2020, New York University, Max Planck Gesellschaft. All rights
- *            reserved.
+ * @copyright 2020, Max Planck Gesellschaft. All rights reserved.
  * @license BSD 3-clause
  */
 
