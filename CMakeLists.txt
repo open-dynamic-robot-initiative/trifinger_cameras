@@ -33,6 +33,7 @@ catkin_python_setup()
 catkin_package(
     INCLUDE_DIRS include
     LIBRARIES
+        camera_observations
         opencv_driver
         ${pylon_driver}
         ${tricamera_driver}
@@ -48,13 +49,23 @@ include_directories(
 
 
 # Libraries
+add_library(camera_observations
+    src/camera_observation.cpp
+    src/tricamera_observation.cpp
+)
+target_link_libraries(camera_observations ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+
 add_library(opencv_driver src/opencv_driver.cpp)
-target_link_libraries(opencv_driver ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(opencv_driver
+    ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} camera_observations
+)
 
 if (${Pylon_FOUND})
     add_library(${pylon_driver} src/pylon_driver.cpp)
     target_link_libraries(${pylon_driver}
-        ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${Pylon_LIBRARIES})
+        ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${Pylon_LIBRARIES}
+        camera_observations
+    )
 
     add_library(${tricamera_driver} src/tricamera_driver.cpp)
     target_link_libraries(${tricamera_driver} pylon_driver)

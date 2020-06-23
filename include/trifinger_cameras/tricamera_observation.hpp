@@ -23,7 +23,6 @@ struct TriCameraObservation
     {
         archive(cameras);
     }
-
 };
 
 }  // namespace trifinger_cameras
