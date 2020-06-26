@@ -1,8 +1,7 @@
 /**
  * @file
  * @brief Defines the observation structure to be used by any camera.
- * @copyright 2020, New York University, Max Planck Gesellschaft. All rights
- *            reserved.
+ * @copyright 2020, Max Planck Gesellschaft. All rights reserved.
  * @license BSD 3-clause
  */
 
@@ -27,17 +26,17 @@ struct CameraObservation
     static constexpr size_t height = 540;
 
     cv::Mat image;
-    double time_stamp;
+    double timestamp;
 
     CameraObservation():
         image(height, width, CV_8UC3),
-        time_stamp(0)
+        timestamp(0)
     {}
 
     template <class Archive>
     void serialize(Archive& archive)
     {
-        archive(image, time_stamp);
+        archive(image, timestamp);
     }
 };
 

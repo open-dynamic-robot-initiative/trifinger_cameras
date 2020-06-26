@@ -92,7 +92,7 @@ CameraObservation PylonDriver::get_observation()
     camera_.RetrieveResult(
         5000, ptr_grab_result, Pylon::TimeoutHandling_ThrowException);
     auto current_time = std::chrono::system_clock::now();
-    image_frame.time_stamp =
+    image_frame.timestamp =
         std::chrono::duration<double>(current_time.time_since_epoch()).count();
 
     if (ptr_grab_result->GrabSucceeded())

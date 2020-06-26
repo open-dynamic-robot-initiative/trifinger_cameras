@@ -1,11 +1,11 @@
 /**
  * @file
  * @brief Create bindings for three pylon dependent camera sensors
- * @copyright 2020, New York University, Max Planck Gesellschaft. All rights
- *            reserved.
+ * @copyright 2020, Max Planck Gesellschaft. All rights reserved.
  * @license BSD 3-clause
  */
 
+#include <trifinger_cameras/pybullet_tricamera_driver.hpp>
 #include <trifinger_cameras/tricamera_observation.hpp>
 #ifdef Pylon_FOUND
 #include <trifinger_cameras/tricamera_driver.hpp>
@@ -34,4 +34,11 @@ PYBIND11_MODULE(py_tricamera_types, m)
     pybind11::class_<TriCameraObservation>(m, "TriCameraObservation")
         .def(pybind11::init<>())
         .def_readwrite("cameras", &TriCameraObservation::cameras);
+
+    pybind11::class_<PyBulletTriCameraDriver,
+                     std::shared_ptr<PyBulletTriCameraDriver>,
+                     SensorDriver<TriCameraObservation>>(
+        m, "PyBulletTriCameraDriver")
+        .def(pybind11::init<>())
+        .def("get_observation", &PyBulletTriCameraDriver::get_observation);
 }

@@ -1,13 +1,13 @@
 /**
  * @file
  * @brief Create bindings for camera sensors
- * @copyright 2020, New York University, Max Planck Gesellschaft. All rights
- *            reserved.
+ * @copyright 2020, Max Planck Gesellschaft. All rights reserved.
  * @license BSD 3-clause
  */
 
 #include <trifinger_cameras/camera_observation.hpp>
 #include <trifinger_cameras/opencv_driver.hpp>
+#include <trifinger_cameras/pybind_opencv.hpp>
 #ifdef Pylon_FOUND
 #include <trifinger_cameras/pylon_driver.hpp>
 #endif
@@ -20,6 +20,7 @@ using namespace trifinger_cameras;
 PYBIND11_MODULE(py_camera_types, m)
 {
     create_sensor_bindings<CameraObservation>(m);
+    pybind_cvmat(m);
 
     pybind11::class_<OpenCVDriver,
                      std::shared_ptr<OpenCVDriver>,
@@ -38,26 +39,5 @@ PYBIND11_MODULE(py_camera_types, m)
     pybind11::class_<CameraObservation>(m, "CameraObservation")
         .def(pybind11::init<>())
         .def_readwrite("image", &CameraObservation::image)
-        .def_readwrite("time_stamp", &CameraObservation::time_stamp);
-
-    // The following block of code for binding cv::Mat to np.ndarray is from
-    // [here](https://alexsm.com/pybind11-buffer-protocol-opencv-to-numpy/).
-    pybind11::class_<cv::Mat>(m, "Image", pybind11::buffer_protocol())
-        .def_buffer([](cv::Mat& im) -> pybind11::buffer_info {
-            return pybind11::buffer_info(
-                // Pointer to buffer
-                im.data,
-                // Size of one scalar
-                sizeof(uint8_t),
-                // Python struct-style format descriptor
-                pybind11::format_descriptor<uint8_t>::format(),
-                // Number of dimensions
-                3,
-                // Buffer dimensions
-                {im.rows, im.cols, im.channels()},
-                // Strides (in bytes) for each index
-                {sizeof(uint8_t) * im.channels() * im.cols,
-                 sizeof(uint8_t) * im.channels(),
-                 sizeof(uint8_t)});
-        });
+        .def_readwrite("timestamp", &CameraObservation::timestamp);
 }
