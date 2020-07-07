@@ -110,13 +110,16 @@ CameraObservation PylonDriver::get_observation()
             throw std::length_error(msg.str());
         }
 
-        format_converter_.Convert(pylon_image_, ptr_grab_result);
-        // FIXME: clarify if this creates a copy or references the memory of
-        // pylon_image_.  In latter case, we have to be careful!
+        Pylon::CPylonImage pylon_image;
+        format_converter_.Convert(pylon_image, ptr_grab_result);
+        // NOTE: If created like this, the cv::Mat points to the memory of
+        // pylon_image.  Clone it to ensure that the memory of the returned
+        // image does not suddenly change or become invalid.
         image_frame.image = cv::Mat(ptr_grab_result->GetHeight(),
                                     ptr_grab_result->GetWidth(),
                                     CV_8UC3,
-                                    (uint8_t*)pylon_image_.GetBuffer());
+                                    (uint8_t*)pylon_image.GetBuffer())
+                                .clone();
     }
     else
     {

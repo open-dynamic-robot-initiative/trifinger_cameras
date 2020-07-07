@@ -94,7 +94,7 @@ TriggerSelector	FrameStart
 TriggerActivation	RisingEdge
 TriggerSelector	FrameStart
 TriggerDelay	0
-AcquisitionFrameRateEnable	0
+AcquisitionFrameRateEnable	1
 AcquisitionFrameRate	100.00000
 DeviceLinkSelector	0
 DeviceLinkThroughputLimitMode	On
