@@ -12,7 +12,7 @@ TEST(TestCameraObservation, serialization)
     trifinger_cameras::CameraObservation obs1, obs2;
 
     obs1.image = (cv::Mat_<double>(3, 3) << 1, 2, 3, 4, 5, 6, 7, 8, 9);
-    obs1.time_stamp = 42.0;
+    obs1.timestamp = 42.0;
 
     std::stringstream serialized_data;  // any stream can be used
 
@@ -27,7 +27,7 @@ TEST(TestCameraObservation, serialization)
     }
 
     ASSERT_EQ(cv::countNonZero(obs1.image != obs2.image), 0);
-    ASSERT_EQ(obs1.time_stamp, obs2.time_stamp);
+    ASSERT_EQ(obs1.timestamp, obs2.timestamp);
 }
 
 int main(int argc, char **argv)
