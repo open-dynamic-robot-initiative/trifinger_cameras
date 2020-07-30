@@ -33,7 +33,7 @@ PyBulletTriCameraDriver::PyBulletTriCameraDriver()
     cvMat_ = camera_types.attr("cvMat");
 
     // TriFingerCameras gives access to the cameras in simulation
-    py::module mod_camera = py::module::import("pybullet_fingers.camera");
+    py::module mod_camera = py::module::import("trifinger_simulation.camera");
     cameras_ = mod_camera.attr("TriFingerCameras")();
 }
 
