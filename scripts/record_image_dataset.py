@@ -124,7 +124,7 @@ def main():
         camera_module = trifinger_cameras.camera
         image_saver = SingleImageSaver(args.outdir, args.camera_id)
 
-    camera_data = camera_module.Data()
+    camera_data = camera_module.SingleProcessData()
     camera_backend = camera_module.Backend(camera_driver, camera_data)
     camera_frontend = camera_module.Frontend(camera_data)
 
