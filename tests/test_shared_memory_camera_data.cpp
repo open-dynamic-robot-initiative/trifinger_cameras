@@ -12,7 +12,7 @@ TEST(TestSharedMemoryCameraData, serialization)
     using CameraObservation = trifinger_cameras::CameraObservation;
 
     robot_interfaces::MultiProcessSensorData<CameraObservation> data(
-        "test_camera_data", true);
+        "test_camera_data", true, 10);
     CameraObservation obs1, obs2;
 
     obs1.image = (cv::Mat_<double>(3, 3) << 1, 2, 3, 4, 5, 6, 7, 8, 9);
