@@ -3,6 +3,16 @@ import cv2
 import numpy as np
 
 
+def rot_points(rmat, points):
+
+    N = points.shape[0]
+
+    for i in np.arange(N):
+        points[i, :] = np.matmul(rmat, points[i, :])
+
+    return points
+
+
 def rodrigues_to_matrix(rvec):
     """Convert Rodrigues vector to homogeneous transformation matrix
 

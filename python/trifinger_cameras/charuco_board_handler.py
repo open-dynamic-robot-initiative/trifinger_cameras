@@ -33,7 +33,7 @@ class CharucoBoardHandler:
         )
 
         self.size_x = 5
-        self.size_y = 7
+        self.size_y = 10
         self.square_size = 0.04
         self.marker_size = 0.03
 
