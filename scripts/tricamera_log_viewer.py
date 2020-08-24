@@ -19,8 +19,8 @@ def main():
     log_reader = trifinger_cameras.tricamera.LogReader(args.filename)
 
     # determine rate based on time stamps
-    start_time = log_reader.data[0].camera[0].time_stamp
-    end_time = log_reader.data[-1].camera[0].time_stamp
+    start_time = log_reader.data[0].cameras[0].timestamp
+    end_time = log_reader.data[-1].cameras[0].timestamp
     interval = (end_time - start_time) / len(log_reader.data)
     # convert to ms
     interval = int(interval * 1000)
