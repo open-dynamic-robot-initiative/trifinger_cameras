@@ -20,16 +20,14 @@ namespace trifinger_cameras
 //template<size_t _width, size_t _height>
 struct CameraObservation
 {
-    //static constexpr size_t width = _width;
-    //static constexpr size_t height = _height;
-    static constexpr size_t width = 720;
-    static constexpr size_t height = 540;
+    static constexpr size_t width = 270;
+    static constexpr size_t height = 270;
 
     cv::Mat image;
     double timestamp;
 
     CameraObservation():
-        image(height, width, CV_8UC3),
+        image(height, width, CV_8UC1),
         timestamp(0)
     {}
 

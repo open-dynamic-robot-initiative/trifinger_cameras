@@ -33,7 +33,7 @@ PylonDriver::PylonDriver(const std::string& device_user_id_to_open)
         {
             device_iterator = device_list.begin();
             camera_.Attach(tl_factory.CreateDevice(*device_iterator));
-            std::cout << "Desired device not found. Creating a camera object "
+            std::cout << "No device ID specified. Creating a camera object "
                          "with the first device id in the device list."
                       << std::endl;
         }
@@ -68,7 +68,6 @@ PylonDriver::PylonDriver(const std::string& device_user_id_to_open)
 
             camera_.Open();
             camera_.MaxNumBuffer = 5;
-            format_converter_.OutputPixelFormat = Pylon::PixelType_BGR8packed;
 
             set_camera_configuration(camera_.GetNodeMap());
 
@@ -98,28 +97,46 @@ CameraObservation PylonDriver::get_observation()
     if (ptr_grab_result->GrabSucceeded())
     {
         // ensure that the actual image size matches with the expected one
-        if (ptr_grab_result->GetHeight() != image_frame.height ||
-            ptr_grab_result->GetWidth() != image_frame.width)
+        if (ptr_grab_result->GetHeight() / 2 != image_frame.height ||
+            ptr_grab_result->GetWidth() / 2 != image_frame.width)
         {
             std::stringstream msg;
             msg << "Size of grabbed frame (" << ptr_grab_result->GetWidth()
                 << "x" << ptr_grab_result->GetHeight()
-                << ") does not match expected size of observation ("
-                << image_frame.width << "x" << image_frame.height << ").";
+                << ") does not match expected size (" << image_frame.width * 2
+                << "x" << image_frame.height * 2 << ").";
 
             throw std::length_error(msg.str());
         }
 
-        Pylon::CPylonImage pylon_image;
-        format_converter_.Convert(pylon_image, ptr_grab_result);
         // NOTE: If created like this, the cv::Mat points to the memory of
-        // pylon_image.  Clone it to ensure that the memory of the returned
-        // image does not suddenly change or become invalid.
-        image_frame.image = cv::Mat(ptr_grab_result->GetHeight(),
-                                    ptr_grab_result->GetWidth(),
-                                    CV_8UC3,
-                                    (uint8_t*)pylon_image.GetBuffer())
-                                .clone();
+        // pylon_image!
+        cv::Mat image = cv::Mat(ptr_grab_result->GetHeight(),
+                                ptr_grab_result->GetWidth(),
+                                CV_8UC1,
+                                (uint8_t*)ptr_grab_result->GetBuffer());
+
+        // Downsample resolution by factor 2.  We are operating on the raw
+        // image here, so we need to be careful to preserve the Bayer pattern.
+        // This is done by iterating in steps of 4 over the original image,
+        // keeping the first two rows/columns and discarding the second two.
+        image_frame.image = cv::Mat(image.cols / 2, image.rows / 2, CV_8UC1);
+        for (int r = 0; r < image_frame.height; r += 2)
+        {
+            for (int c = 0; c < image_frame.width; c += 2)
+            {
+                int r2 = r * 2;
+                int c2 = c * 2;
+
+                image_frame.image.at<uint8_t>(r, c) = image.at<uint8_t>(r2, c2);
+                image_frame.image.at<uint8_t>(r + 1, c) =
+                    image.at<uint8_t>(r2 + 1, c2);
+                image_frame.image.at<uint8_t>(r, c + 1) =
+                    image.at<uint8_t>(r2, c2 + 1);
+                image_frame.image.at<uint8_t>(r + 1, c + 1) =
+                    image.at<uint8_t>(r2 + 1, c2 + 1);
+            }
+        }
     }
     else
     {
