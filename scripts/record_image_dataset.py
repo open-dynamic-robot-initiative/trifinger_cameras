@@ -9,13 +9,12 @@ be changed to using a single camera either via Pylon or OpenCV with the
 `--driver` argument.
 """
 import argparse
-import multiprocessing
 import os
 
-import numpy as np
 import cv2
 
 import trifinger_cameras
+from trifinger_cameras import utils
 
 
 class SingleImageSaver:
@@ -35,7 +34,8 @@ class SingleImageSaver:
 
     def save(self, observation):
         filename = os.path.join(self.out_dir, self.sample_name)
-        cv2.imwrite(filename, np.array(observation.image, copy=False))
+        image = utils.convert_image(observation.image)
+        cv2.imwrite(filename, image)
 
 
 class TriImageSaver:
@@ -60,9 +60,8 @@ class TriImageSaver:
 
         for i, name in enumerate(self.camera_names):
             filename = os.path.join(directory, name + ".png")
-            cv2.imwrite(
-                filename, np.array(observation.cameras[i].image, copy=False)
-            )
+            image = utils.convert_image(observation.cameras[i].image)
+            cv2.imwrite(filename, image)
 
 
 def main():
@@ -125,10 +124,9 @@ def main():
         image_saver = SingleImageSaver(args.outdir, args.camera_id)
 
     camera_data = camera_module.SingleProcessData()
-    camera_backend = camera_module.Backend(camera_driver, camera_data)
+    camera_backend = camera_module.Backend(camera_driver, camera_data)  # noqa
     camera_frontend = camera_module.Frontend(camera_data)
 
-    counter = 0
     while True:
         sample_name = image_saver.next()
         if image_saver.exists():
@@ -142,13 +140,11 @@ def main():
                 observation = camera_frontend.get_latest_observation()
                 if args.driver == "tri":
                     for i, name in enumerate(camera_names):
-                        cv2.imshow(
-                            name, np.array(observation.image[i], copy=False)
-                        )
+                        image = utils.convert_image(observation.cameras[i].image)
+                        cv2.imshow(name, image)
                 else:
-                    cv2.imshow(
-                        args.camera_id, np.array(observation.image, copy=False)
-                    )
+                    image = utils.convert_image(observation.image)
+                    cv2.imshow(args.camera_id, image)
                 cv2.waitKey(interval_ms)
             print("Record sample {}".format(sample_name))
 

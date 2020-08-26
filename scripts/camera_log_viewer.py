@@ -3,10 +3,10 @@
 Play back CameraObservations from a log file.
 """
 import argparse
-import numpy as np
 import cv2
 
 import trifinger_cameras
+from trifinger_cameras import utils
 
 
 def main():
@@ -32,7 +32,7 @@ def main():
     )
 
     for observation in log_reader.data:
-        cv2.imshow("Image", np.array(observation.image, copy=False))
+        cv2.imshow("Image", utils.convert_image(observation.image))
 
         # stop if either "q" or ESC is pressed
         if cv2.waitKey(interval) in [ord("q"), 27]:  # 27 = ESC

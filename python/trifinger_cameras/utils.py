@@ -41,3 +41,28 @@ def rodrigues_to_quaternion(rvec):
     quaternion = tf.transformations.quaternion_from_matrix(rotation_matrix)
 
     return quaternion
+
+
+def convert_image(raw_image, format: str = "bgr") -> np.ndarray:
+    """Convert raw image from camera observation.
+
+    Args:
+        raw_image: Raw image from camera observation.
+        format (str): Format of the output image.  One of "bgr", "rgb", "gray".
+            Defaults to "bgr" which is the default format of OpenCV.
+
+    Returns:
+        The converted image as NumPy array.
+    """
+    image = np.array(raw_image, copy=False)
+
+    if format == "bgr":
+        image = cv2.cvtColor(image, cv2.COLOR_BAYER_BG2BGR)
+    elif format == "rgb":
+        image = cv2.cvtColor(image, cv2.COLOR_BAYER_BG2RGB)
+    elif format == "gray":
+        image = cv2.cvtColor(image, cv2.COLOR_BAYER_BG2GRAY)
+    else:
+        raise ValueError("Output format '%s' is not supported" % format)
+
+    return image

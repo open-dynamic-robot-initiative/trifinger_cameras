@@ -7,10 +7,10 @@ Basically illustrates what objects to create to interact with the
 camera, and the available methods for that.
 """
 import argparse
-import numpy as np
 import cv2
 
 import trifinger_cameras
+from trifinger_cameras import utils
 
 
 def main():
@@ -45,7 +45,7 @@ def main():
         camera_id = int(args.camera_id) if args.camera_id else 0
         camera_driver = trifinger_cameras.camera.OpenCVDriver(camera_id)
 
-    camera_backend = trifinger_cameras.camera.Backend(
+    camera_backend = trifinger_cameras.camera.Backend(  # noqa
         camera_driver, camera_data
     )
     camera_frontend = trifinger_cameras.camera.Frontend(camera_data)
@@ -56,8 +56,9 @@ def main():
 
     while True:
         observation = camera_frontend.get_latest_observation()
+        image = utils.convert_image(observation.image)
         window_name = "Image Stream"
-        cv2.imshow(window_name, np.array(observation.image, copy=False))
+        cv2.imshow(window_name, image)
 
         # stop if either "q" or ESC is pressed
         if cv2.waitKey(3) in [ord("q"), 27]:  # 27 = ESC
