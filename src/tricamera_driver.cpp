@@ -7,22 +7,33 @@
  */
 #include <trifinger_cameras/tricamera_driver.hpp>
 
+#include <thread>
+
 namespace trifinger_cameras
 {
+// this needs to be declared here...
+constexpr std::chrono::milliseconds TriCameraDriver::rate;
+
 TriCameraDriver::TriCameraDriver(const std::string& device_id_1,
                                  const std::string& device_id_2,
                                  const std::string& device_id_3)
-    : cam_1(device_id_1), cam_2(device_id_2), cam_3(device_id_3)
+    : last_update_time_(std::chrono::system_clock::now()),
+      camera1_(device_id_1),
+      camera2_(device_id_2),
+      camera3_(device_id_3)
 {
 }
 
 TriCameraObservation TriCameraDriver::get_observation()
 {
+    last_update_time_ += this->rate;
+    std::this_thread::sleep_until(last_update_time_);
+
     TriCameraObservation tricam_obs;
 
-    tricam_obs.cameras[0] = cam_1.get_observation();
-    tricam_obs.cameras[1] = cam_2.get_observation();
-    tricam_obs.cameras[2] = cam_3.get_observation();
+    tricam_obs.cameras[0] = camera1_.get_observation();
+    tricam_obs.cameras[1] = camera2_.get_observation();
+    tricam_obs.cameras[2] = camera3_.get_observation();
 
     return tricam_obs;
 }
