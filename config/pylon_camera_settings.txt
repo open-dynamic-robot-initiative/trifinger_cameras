@@ -5,9 +5,9 @@ ExposureTimeMode	Standard
 ExposureAuto	Off
 BalanceWhiteAuto	Once
 GainAuto	Off
-Width	720
+Width	540
 Height	540
-OffsetX	4
+OffsetX	92
 OffsetY	2
 CenterX	0
 CenterY	0

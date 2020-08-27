@@ -3,10 +3,10 @@
 Play back TriCameraObservations from a log file.
 """
 import argparse
-import numpy as np
 import cv2
 
 import trifinger_cameras
+from trifinger_cameras import utils
 
 
 def main():
@@ -36,13 +36,13 @@ def main():
         window_180 = "Image Stream camera180"
         window_300 = "Image Stream camera300"
         cv2.imshow(
-            window_180, np.array(observation.cameras[0].image, copy=False)
+            window_60, utils.convert_image(observation.cameras[0].image)
         )
         cv2.imshow(
-            window_300, np.array(observation.cameras[1].image, copy=False)
+            window_180, utils.convert_image(observation.cameras[1].image)
         )
         cv2.imshow(
-            window_60, np.array(observation.cameras[2].image, copy=False)
+            window_300, utils.convert_image(observation.cameras[2].image)
         )
 
         # stop if either "q" or ESC is pressed
