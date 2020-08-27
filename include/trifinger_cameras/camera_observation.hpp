@@ -17,7 +17,6 @@ namespace trifinger_cameras
  * timestamps.
  *
  */
-//template<size_t _width, size_t _height>
 struct CameraObservation
 {
     static constexpr size_t width = 270;
