@@ -1,8 +1,8 @@
 TriFinger Camera Configuration
 ==============================
 
-This package contains launch files, configuration, tools, etc. for the cameras
-of the TriFinger platform.
+This package contains drivers, configuration, tools, etc. for the cameras of the
+TriFinger platform.
 
 ## Copyright
 
