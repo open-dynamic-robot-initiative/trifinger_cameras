@@ -27,7 +27,12 @@ PYBIND11_MODULE(py_tricamera_types, m)
                      SensorDriver<TriCameraObservation>>(m, "TriCameraDriver")
         .def(pybind11::init<const std::string&,
                             const std::string&,
-                            const std::string&>())
+                            const std::string&,
+                            bool>(),
+             pybind11::arg("camera1"),
+             pybind11::arg("camera2"),
+             pybind11::arg("camera3"),
+             pybind11::arg("downsample_images") = true)
         .def("get_observation", &TriCameraDriver::get_observation);
 #endif
 

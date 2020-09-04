@@ -16,11 +16,12 @@ constexpr std::chrono::milliseconds TriCameraDriver::rate;
 
 TriCameraDriver::TriCameraDriver(const std::string& device_id_1,
                                  const std::string& device_id_2,
-                                 const std::string& device_id_3)
+                                 const std::string& device_id_3,
+                                 bool downsample_images)
     : last_update_time_(std::chrono::system_clock::now()),
-      camera1_(device_id_1),
-      camera2_(device_id_2),
-      camera3_(device_id_3)
+      camera1_(device_id_1, downsample_images),
+      camera2_(device_id_2, downsample_images),
+      camera3_(device_id_3, downsample_images)
 {
 }
 
