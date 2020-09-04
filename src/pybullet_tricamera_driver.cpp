@@ -47,7 +47,7 @@ PyBulletTriCameraDriver::get_observation()
     {
         py::gil_scoped_acquire acquire;
 
-        py::list images = cameras_.attr("get_images")();
+        py::list images = cameras_.attr("get_bayer_images")();
         for (int i = 0; i < 3; i++)
         {
             // ensure that the image array is contiguous in memory, otherwise
