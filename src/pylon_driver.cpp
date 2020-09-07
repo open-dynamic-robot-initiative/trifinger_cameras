@@ -14,7 +14,9 @@
 
 namespace trifinger_cameras
 {
-PylonDriver::PylonDriver(const std::string& device_user_id_to_open)
+PylonDriver::PylonDriver(const std::string& device_user_id,
+                         bool downsample_images)
+    : downsample_images_(downsample_images)
 {
     Pylon::CTlFactory& tl_factory = Pylon::CTlFactory::GetInstance();
     Pylon::PylonInitialize();
@@ -29,7 +31,7 @@ PylonDriver::PylonDriver(const std::string& device_user_id_to_open)
     else
     {
         Pylon::DeviceInfoList_t::const_iterator device_iterator;
-        if (device_user_id_to_open.empty())
+        if (device_user_id.empty())
         {
             device_iterator = device_list.begin();
             camera_.Attach(tl_factory.CreateDevice(*device_iterator));
@@ -47,7 +49,7 @@ PylonDriver::PylonDriver(const std::string& device_user_id_to_open)
             {
                 std::string device_user_id_found(
                     device_iterator->GetUserDefinedName());
-                if (device_user_id_to_open == device_user_id_found)
+                if (device_user_id == device_user_id_found)
                 {
                     found_desired_device = true;
                     break;
@@ -116,32 +118,43 @@ CameraObservation PylonDriver::get_observation()
                                 CV_8UC1,
                                 (uint8_t*)ptr_grab_result->GetBuffer());
 
-        // Downsample resolution by factor 2.  We are operating on the raw
-        // image here, so we need to be careful to preserve the Bayer pattern.
-        // This is done by iterating in steps of 4 over the original image,
-        // keeping the first two rows/columns and discarding the second two.
-        image_frame.image = cv::Mat(image.cols / 2, image.rows / 2, CV_8UC1);
-        for (int r = 0; r < image_frame.height; r += 2)
+        if (downsample_images_)
         {
-            for (int c = 0; c < image_frame.width; c += 2)
+            // Downsample resolution by factor 2.  We are operating on the raw
+            // image here, so we need to be careful to preserve the Bayer
+            // pattern. This is done by iterating in steps of 4 over the
+            // original image, keeping the first two rows/columns and discarding
+            // the second two.
+            image_frame.image =
+                cv::Mat(image.cols / 2, image.rows / 2, CV_8UC1);
+            for (int r = 0; r < image_frame.height; r += 2)
             {
-                int r2 = r * 2;
-                int c2 = c * 2;
+                for (int c = 0; c < image_frame.width; c += 2)
+                {
+                    int r2 = r * 2;
+                    int c2 = c * 2;
 
-                image_frame.image.at<uint8_t>(r, c) = image.at<uint8_t>(r2, c2);
-                image_frame.image.at<uint8_t>(r + 1, c) =
-                    image.at<uint8_t>(r2 + 1, c2);
-                image_frame.image.at<uint8_t>(r, c + 1) =
-                    image.at<uint8_t>(r2, c2 + 1);
-                image_frame.image.at<uint8_t>(r + 1, c + 1) =
-                    image.at<uint8_t>(r2 + 1, c2 + 1);
+                    image_frame.image.at<uint8_t>(r, c) =
+                        image.at<uint8_t>(r2, c2);
+                    image_frame.image.at<uint8_t>(r + 1, c) =
+                        image.at<uint8_t>(r2 + 1, c2);
+                    image_frame.image.at<uint8_t>(r, c + 1) =
+                        image.at<uint8_t>(r2, c2 + 1);
+                    image_frame.image.at<uint8_t>(r + 1, c + 1) =
+                        image.at<uint8_t>(r2 + 1, c2 + 1);
+                }
             }
+        }
+        else
+        {
+            image_frame.image = image.clone();
         }
     }
     else
     {
         throw std::runtime_error("Failed to access images from the camera.");
     }
+
     return image_frame;
 }
 

@@ -31,10 +31,13 @@ public:
      * @param device_id_1 device user id of first camera
      * @param device_id_2 likewise, the 2nd's
      * @param device_id_3 and the 3rd's
+     * @param downsample_images If set to true (default), images are
+     *     downsampled to half their original size.
      */
     TriCameraDriver(const std::string& device_id_1,
                     const std::string& device_id_2,
-                    const std::string& device_id_3);
+                    const std::string& device_id_3,
+                    bool downsample_images = true);
 
     /**
      * @brief Get the latest observation from the three cameras

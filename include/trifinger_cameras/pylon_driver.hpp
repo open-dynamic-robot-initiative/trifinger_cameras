@@ -30,12 +30,13 @@ namespace trifinger_cameras
 class PylonDriver : public robot_interfaces::SensorDriver<CameraObservation>
 {
 public:
-
     /**
-     * @param device_user_id_to_open The id of the camera device to open and
-     * grab images from
+     * @param device_user_id "DeviceUserID" of the camera.
+     * @param downsample_images If set to true (default), images are downsampled
+     *     to half their original size.
      */
-    PylonDriver(const std::string& device_user_id_to_open);
+    PylonDriver(const std::string& device_user_id,
+                bool downsample_images = true);
 
     ~PylonDriver();
 
@@ -47,6 +48,7 @@ public:
     CameraObservation get_observation();
 
 private:
+    const bool downsample_images_;
     Pylon::PylonAutoInitTerm auto_init_term_;
     Pylon::CInstantCamera camera_;
 

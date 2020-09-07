@@ -99,6 +99,11 @@ def main():
             For the "tri" driver, this value is ignored.
         """,
     )
+    argparser.add_argument(
+        "--no-downsample",
+        action="store_true",
+        help="""Do not downsample images.  Only for Pylon cameras.""",
+    )
     args = argparser.parse_args()
 
     if args.driver != "tri" and args.camera_id is None:
@@ -108,12 +113,14 @@ def main():
     if args.driver == "tri":
         camera_names = ["camera60", "camera180", "camera300"]
         camera_driver = trifinger_cameras.tricamera.TriCameraDriver(
-            *camera_names
+            *camera_names, not args.no_downsample
         )
         camera_module = trifinger_cameras.tricamera
         image_saver = TriImageSaver(args.outdir, camera_names)
     elif args.driver == "pylon":
-        camera_driver = trifinger_cameras.camera.PylonDriver(args.camera_id)
+        camera_driver = trifinger_cameras.camera.PylonDriver(
+            args.camera_id, not args.no_downsample
+        )
         camera_module = trifinger_cameras.camera
         image_saver = SingleImageSaver(args.outdir, args.camera_id)
     elif args.driver == "opencv":
