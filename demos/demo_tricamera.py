@@ -17,21 +17,33 @@ def main():
     argparser.add_argument(
         "--store-timestamps",
         type=str,
-        help="""Pass --store_timestamps to dump the timestamps from the observations
-             of the three cameras into a pickle file, followed by the name of
-             this pickle file (for eg. time_stamps.p).
-             """,
+        metavar="FILENAME",
+        help="""Store the timestamps from the observations of the three cameras
+            into the specified pickle file.
+        """,
+    )
+    argparser.add_argument(
+        "--multi-process",
+        action="store_true",
+        help="""If set, use multiprocess camera data to access backend in other
+            process.  Otherwise run the backend locally.
+        """,
     )
     args = argparser.parse_args()
 
-    camera_data = trifinger_cameras.tricamera.SingleProcessData()
-    camera_driver = trifinger_cameras.tricamera.TriCameraDriver(
-        "camera60", "camera180", "camera300"
-    )
+    if args.multi_process:
+        camera_data = trifinger_cameras.tricamera.MultiProcessData(
+            "tricamera", False
+        )
+    else:
+        camera_data = trifinger_cameras.tricamera.SingleProcessData()
+        camera_driver = trifinger_cameras.tricamera.TriCameraDriver(
+            "camera60", "camera180", "camera300"
+        )
+        camera_backend = trifinger_cameras.tricamera.Backend(  # noqa
+            camera_driver, camera_data
+        )
 
-    camera_backend = trifinger_cameras.tricamera.Backend(  # noqa
-        camera_driver, camera_data
-    )
     camera_frontend = trifinger_cameras.tricamera.Frontend(camera_data)
     observations_timestamps_list = []
 
@@ -56,9 +68,9 @@ def main():
 
         observations_timestamps_list.append(
             [
-                observation.cameras[0].time_stamp,
-                observation.cameras[1].time_stamp,
-                observation.cameras[2].time_stamp,
+                observation.cameras[0].timestamp,
+                observation.cameras[1].timestamp,
+                observation.cameras[2].timestamp,
             ]
         )
 
