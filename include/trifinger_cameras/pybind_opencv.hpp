@@ -14,8 +14,8 @@ void pybind_cvmat(pybind11::module& m)
     // NOTE: this currently only supports types 8UC1 and 8UC3 but should be
     // easy to extend to other types if needed.
     pybind11::class_<cv::Mat>(m, "cvMat", pybind11::buffer_protocol())
-        .def("__init__",
-             [](cv::Mat& mat, pybind11::buffer buffer) {
+        .def(pybind11::init(
+             [](pybind11::buffer buffer) {
                  // based on
                  // https://pybind11.readthedocs.io/en/stable/advanced/pycpp/numpy.html?highlight=buffer#buffer-protocol
 
@@ -45,19 +45,8 @@ void pybind_cvmat(pybind11::module& m)
                              "Incompatible number of channels.");
                  }
 
-                 // create a temporary cv::Mat with the buffer data
-                 cv::Mat foo(info.shape[0], info.shape[1], type, info.ptr);
-                 // initialize the output matrix to the proper size/type.
-                 {
-                     // the following is pure C++, so the GIL can be released
-                     pybind11::gil_scoped_release release_gil;
-
-                     new (&mat) cv::Mat(foo.rows, foo.cols, foo.type());
-                     // copy data from the temp. matrix to the output one (foo
-                     // is only pointing to the data of buffer).
-                     foo.copyTo(mat);
-                 }
-             })
+                 return cv::Mat(info.shape[0], info.shape[1], type, info.ptr);
+             }))
         .def_buffer([](cv::Mat& im) -> pybind11::buffer_info {
             // based on
             // https://alexsm.com/pybind11-buffer-protocol-opencv-to-numpy/
