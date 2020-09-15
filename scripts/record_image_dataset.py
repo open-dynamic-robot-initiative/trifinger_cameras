@@ -61,6 +61,7 @@ class TriImageSaver:
         for i, name in enumerate(self.camera_names):
             filename = os.path.join(directory, name + ".png")
             image = utils.convert_image(observation.cameras[i].image)
+            print(image.shape)
             cv2.imwrite(filename, image)
 
 
@@ -156,7 +157,9 @@ def main():
             print("Record sample {}".format(sample_name))
 
         else:
-            input("Press Enter to record sample {}".format(sample_name))
+            key = input("Press Enter to record sample {}".format(sample_name))
+            if key == "q":
+                break
 
         observation = camera_frontend.get_latest_observation()
         image_saver.save(observation)

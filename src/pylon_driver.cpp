@@ -99,17 +99,17 @@ CameraObservation PylonDriver::get_observation()
     if (ptr_grab_result->GrabSucceeded())
     {
         // ensure that the actual image size matches with the expected one
-        if (ptr_grab_result->GetHeight() / 2 != image_frame.height ||
-            ptr_grab_result->GetWidth() / 2 != image_frame.width)
-        {
-            std::stringstream msg;
-            msg << "Size of grabbed frame (" << ptr_grab_result->GetWidth()
-                << "x" << ptr_grab_result->GetHeight()
-                << ") does not match expected size (" << image_frame.width * 2
-                << "x" << image_frame.height * 2 << ").";
+        //if (ptr_grab_result->GetHeight() / 2 != image_frame.height ||
+        //    ptr_grab_result->GetWidth() / 2 != image_frame.width)
+        //{
+        //    std::stringstream msg;
+        //    msg << "Size of grabbed frame (" << ptr_grab_result->GetWidth()
+        //        << "x" << ptr_grab_result->GetHeight()
+        //        << ") does not match expected size (" << image_frame.width * 2
+        //        << "x" << image_frame.height * 2 << ").";
 
-            throw std::length_error(msg.str());
-        }
+        //    throw std::length_error(msg.str());
+        //}
 
         // NOTE: If created like this, the cv::Mat points to the memory of
         // pylon_image!
