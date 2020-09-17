@@ -17,10 +17,11 @@
     <depend>pybind11_catkin</depend>
     <depend>robot_interfaces</depend>
     <depend>serialization_utils</depend>
+    <depend>sensor_msgs</depend>
+    <depend>yaml_cpp_catkin</depend>
 
     <exec_depend>rospy</exec_depend>
     <exec_depend>geometry_msgs</exec_depend>
-    <exec_depend>sensor_msgs</exec_depend>
     <exec_depend>cv_bridge</exec_depend>
     <exec_depend>tf</exec_depend>
 

@@ -31,28 +31,15 @@
  *  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
-
-#ifndef CAMERA_CALIBRATION_PARSERS_PARSE_YML_H
-#define CAMERA_CALIBRATION_PARSERS_PARSE_YML_H
+#pragma once
 
 #include <sensor_msgs/CameraInfo.h>
 #include <istream>
 #include <ostream>
 #include <string>
 
-namespace camera_calibration_parsers
+namespace trifinger_cameras
 {
-/**
- * \brief Write calibration parameters to a file in YAML format.
- *
- * \param out Output stream to write to
- * \param camera_name Name of the camera
- * \param cam_info Camera parameters
- */
-bool writeCalibrationYml(std::ostream& out,
-                         const std::string& camera_name,
-                         const sensor_msgs::CameraInfo& cam_info);
-
 /**
  * \brief Read calibration parameters from a YAML file.
  *
@@ -63,17 +50,6 @@ bool writeCalibrationYml(std::ostream& out,
 bool readCalibrationYml(std::istream& in,
                         std::string& camera_name,
                         sensor_msgs::CameraInfo& cam_info);
-
-/**
- * \brief Write calibration parameters to a file in YAML format.
- *
- * \param file_name File to write
- * \param camera_name Name of the camera
- * \param cam_info Camera parameters
- */
-bool writeCalibrationYml(const std::string& file_name,
-                         const std::string& camera_name,
-                         const sensor_msgs::CameraInfo& cam_info);
 
 /**
  * \brief Read calibration parameters from a YAML file.
@@ -87,5 +63,3 @@ bool readCalibrationYml(const std::string& file_name,
                         sensor_msgs::CameraInfo& cam_info);
 
 }  // namespace camera_calibration_parsers
-
-#endif

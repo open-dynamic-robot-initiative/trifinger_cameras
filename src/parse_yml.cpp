@@ -32,8 +32,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 
-#include "camera_calibration_parsers/parse_yml.h"
-#include <ros/console.h>
+#include <trifinger_cameras/parse_yml.h>
+
+#include <Eigen/Eigen>
 #include <sensor_msgs/distortion_models.h>
 #include <yaml-cpp/yaml.h>
 #include <boost/filesystem.hpp>
@@ -42,9 +43,20 @@
 #include <ctime>
 #include <fstream>
 
-namespace camera_calibration_parsers
+namespace trifinger_cameras
 {
-/// \cond
+
+struct CameraParameters
+{
+    unsigned int image_width;
+    unsigned int image_height;
+
+    Eigen::Matrix3d camera_matrix;
+    Eigen::Matrix<double, 5, 1> distortion_coefficients;
+
+    Eigen::Matrix4d tf_world_to_camera;
+};
+
 
 static const char CAM_YML_NAME[] = "camera_name";
 static const char WIDTH_YML_NAME[] = "image_width";
@@ -67,168 +79,96 @@ struct SimpleMatrix
     }
 };
 
-YAML::Emitter& operator<<(YAML::Emitter& out, const SimpleMatrix& m)
-{
-    out << YAML::BeginMap;
-    out << YAML::Key << "rows" << YAML::Value << m.rows;
-    out << YAML::Key << "cols" << YAML::Value << m.cols;
-    // out << YAML::Key << "dt"   << YAML::Value << "d"; // OpenCV data type
-    // specifier
-    out << YAML::Key << "data" << YAML::Value;
-    out << YAML::Flow;
-    out << YAML::BeginSeq;
-    for (int i = 0; i < m.rows * m.cols; ++i) out << m.data[i];
-    out << YAML::EndSeq;
-    out << YAML::EndMap;
-    return out;
-}
-
-#ifdef HAVE_NEW_YAMLCPP
 template <typename T>
 void operator>>(const YAML::Node& node, T& i)
 {
     i = node.as<T>();
 }
-#endif
 
 void operator>>(const YAML::Node& node, SimpleMatrix& m)
 {
     int rows, cols;
-    node["rows"] >> rows;
+    rows = node["rows"].as<int>();
     assert(rows == m.rows);
-    node["cols"] >> cols;
+    cols = node["cols"].as<int>();
     assert(cols == m.cols);
     const YAML::Node& data = node["data"];
-    for (int i = 0; i < rows * cols; ++i) data[i] >> m.data[i];
+    for (int i = 0; i < rows * cols; ++i)
+    {
+        m.data[i] = data[i].as<double>();
+    }
+}
+
+void operator>>(const YAML::Node& node, Eigen::Matrix3d& m)
+{
+    int rows, cols;
+    rows = node["rows"].as<int>();
+    assert(rows == m.rows());
+    cols = node["cols"].as<int>();
+    assert(cols == m.cols());
+    const YAML::Node& data = node["data"];
+    for (int i = 0; i < rows * cols; ++i)
+    {
+        int r = i / rows;
+        int c = i - r * cols;
+        m(r, c) = data[i].as<double>();
+    }
 }
 
 /// \endcond
-
-bool writeCalibrationYml(std::ostream& out,
-                         const std::string& camera_name,
-                         const sensor_msgs::CameraInfo& cam_info)
-{
-    YAML::Emitter emitter;
-    emitter << YAML::BeginMap;
-
-#if 0
-  // Calibration time
-  /// @todo Emitting the time breaks yaml-cpp on reading for some reason
-  time_t raw_time;
-  time( &raw_time );
-  emitter << YAML::Key << "calibration_time";
-  emitter << YAML::Value << asctime(localtime(&raw_time));
-#endif
-
-    // Image dimensions
-    emitter << YAML::Key << WIDTH_YML_NAME << YAML::Value
-            << (int)cam_info.width;
-    emitter << YAML::Key << HEIGHT_YML_NAME << YAML::Value
-            << (int)cam_info.height;
-
-    // Camera name and intrinsics
-    emitter << YAML::Key << CAM_YML_NAME << YAML::Value << camera_name;
-    emitter << YAML::Key << K_YML_NAME << YAML::Value
-            << SimpleMatrix(3, 3, const_cast<double*>(&cam_info.K[0]));
-    emitter << YAML::Key << DMODEL_YML_NAME << YAML::Value
-            << cam_info.distortion_model;
-    emitter << YAML::Key << D_YML_NAME << YAML::Value
-            << SimpleMatrix(
-                   1, cam_info.D.size(), const_cast<double*>(&cam_info.D[0]));
-    emitter << YAML::Key << R_YML_NAME << YAML::Value
-            << SimpleMatrix(3, 3, const_cast<double*>(&cam_info.R[0]));
-    emitter << YAML::Key << P_YML_NAME << YAML::Value
-            << SimpleMatrix(3, 4, const_cast<double*>(&cam_info.P[0]));
-
-    emitter << YAML::EndMap;
-
-    out << emitter.c_str();
-    return true;
-}
-
-bool writeCalibrationYml(const std::string& file_name,
-                         const std::string& camera_name,
-                         const sensor_msgs::CameraInfo& cam_info)
-{
-    boost::filesystem::path dir(
-        boost::filesystem::path(file_name).parent_path());
-    if (!dir.empty() && !boost::filesystem::exists(dir) &&
-        !boost::filesystem::create_directories(dir))
-    {
-        ROS_ERROR("Unable to create directory for camera calibration file [%s]",
-                  dir.c_str());
-    }
-    std::ofstream out(file_name.c_str());
-    if (!out.is_open())
-    {
-        ROS_ERROR("Unable to open camera calibration file [%s] for writing",
-                  file_name.c_str());
-        return false;
-    }
-    return writeCalibrationYml(out, camera_name, cam_info);
-}
 
 bool readCalibrationYml(std::istream& in,
                         std::string& camera_name,
                         sensor_msgs::CameraInfo& cam_info)
 {
+    std::string current_key = "none";
     try
     {
-#ifdef HAVE_NEW_YAMLCPP
         YAML::Node doc = YAML::Load(in);
 
+        current_key = CAM_YML_NAME;
         if (doc[CAM_YML_NAME])
             doc[CAM_YML_NAME] >> camera_name;
         else
             camera_name = "unknown";
-#else
-        YAML::Parser parser(in);
-        if (!parser)
-        {
-            ROS_ERROR("Unable to create YAML parser for camera calibration");
-            return false;
-        }
-        YAML::Node doc;
-        parser.GetNextDocument(doc);
 
-        if (const YAML::Node* name_node = doc.FindValue(CAM_YML_NAME))
-            *name_node >> camera_name;
-        else
-            camera_name = "unknown";
-#endif
-
+        current_key = WIDTH_YML_NAME;
         doc[WIDTH_YML_NAME] >> cam_info.width;
+        current_key = HEIGHT_YML_NAME;
         doc[HEIGHT_YML_NAME] >> cam_info.height;
 
         // Read in fixed-size matrices
         SimpleMatrix K_(3, 3, &cam_info.K[0]);
+        current_key = K_YML_NAME;
         doc[K_YML_NAME] >> K_;
-        SimpleMatrix R_(3, 3, &cam_info.R[0]);
-        doc[R_YML_NAME] >> R_;
-        SimpleMatrix P_(3, 4, &cam_info.P[0]);
-        doc[P_YML_NAME] >> P_;
+
+        // TODO: Disable rectification_matrix for now
+        //SimpleMatrix R_(3, 3, &cam_info.R[0]);
+        //current_key = R_YML_NAME;
+        //doc[R_YML_NAME] >> R_;
+
+        // TODO: Disable projection_matrix for now
+        //SimpleMatrix P_(3, 4, &cam_info.P[0]);
+        //current_key = P_YML_NAME;
+        //doc[P_YML_NAME] >> P_;
 
         // Different distortion models may have different numbers of parameters
-#ifdef HAVE_NEW_YAMLCPP
+        current_key = DMODEL_YML_NAME;
         if (doc[DMODEL_YML_NAME])
         {
             doc[DMODEL_YML_NAME] >> cam_info.distortion_model;
         }
-#else
-        if (const YAML::Node* model_node = doc.FindValue(DMODEL_YML_NAME))
-        {
-            *model_node >> cam_info.distortion_model;
-        }
-#endif
         else
         {
             // Assume plumb bob for backwards compatibility
             cam_info.distortion_model =
                 sensor_msgs::distortion_models::PLUMB_BOB;
-            ROS_WARN(
-                "Camera calibration file did not specify distortion model, "
-                "assuming plumb bob");
+            std::cout << "WARNING: Camera calibration file did not specify "
+                         "distortion model, "
+                         "assuming plumb bob"
+                      << std::endl;
         }
+        current_key = D_YML_NAME;
         const YAML::Node& D_node = doc[D_YML_NAME];
         int D_rows, D_cols;
         D_node["rows"] >> D_rows;
@@ -241,7 +181,9 @@ bool readCalibrationYml(std::istream& in,
     }
     catch (YAML::Exception& e)
     {
-        ROS_ERROR("Exception parsing YAML camera calibration:\n%s", e.what());
+        std::cerr << "Exception parsing YAML camera calibration:\n"
+                  << e.what() << std::endl;
+        std::cerr << "Key causing the exception: " << current_key << std::endl;
         return false;
     }
 }
@@ -253,15 +195,15 @@ bool readCalibrationYml(const std::string& file_name,
     std::ifstream fin(file_name.c_str());
     if (!fin.good())
     {
-        ROS_INFO("Unable to open camera calibration file [%s]",
-                 file_name.c_str());
+        std::cerr << "ERROR: Unable to open camera calibration file "
+                  << file_name.c_str() << std::endl;
         return false;
     }
     bool success = readCalibrationYml(fin, camera_name, cam_info);
     if (!success)
-        ROS_ERROR("Failed to parse camera calibration from file [%s]",
-                  file_name.c_str());
+        std::cerr << "ERROR: Failed to parse camera calibration from file"
+                  << file_name.c_str() << std::endl;
     return success;
 }
 
-}  // namespace camera_calibration_parsers
+}  // namespace trifinger_cameras
