@@ -2,6 +2,7 @@
  * Software License Agreement (BSD License)
  *
  *  Copyright (c) 2009, Willow Garage, Inc.
+ *  Copyright (c) 2020, Max Planck Gesellschaft
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
