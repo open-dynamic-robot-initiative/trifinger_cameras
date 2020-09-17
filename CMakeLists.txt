@@ -8,6 +8,7 @@ find_package(catkin REQUIRED
     pybind11_catkin
     robot_interfaces
     serialization_utils
+    yaml_cpp_catkin
 )
 
 find_package(OpenCV REQUIRED)
@@ -38,6 +39,7 @@ catkin_package(
         ${pylon_driver}
         ${tricamera_driver}
         pybullet_tricamera_driver
+        camera_calibration_parser
 )
 
 
@@ -75,6 +77,15 @@ endif()
 add_library(pybullet_tricamera_driver src/pybullet_tricamera_driver.cpp)
 target_link_libraries(pybullet_tricamera_driver
     ${catkin_LIBRARIES} camera_observations)
+
+add_library(camera_calibration_parser
+    src/parse_yml.cpp
+    src/camera_parameters.cpp
+)
+target_link_libraries(camera_calibration_parser ${catkin_LIBRARIES})
+
+add_executable(load_camera_config_test src/load_camera_config_test.cpp)
+target_link_libraries(load_camera_config_test camera_calibration_parser)
 
 
 # Python Bindings
