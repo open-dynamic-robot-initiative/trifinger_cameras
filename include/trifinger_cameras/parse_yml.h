@@ -33,10 +33,10 @@
  *********************************************************************/
 #pragma once
 
-#include <sensor_msgs/CameraInfo.h>
 #include <istream>
-#include <ostream>
 #include <string>
+
+#include <trifinger_cameras/camera_parameters.hpp>
 
 namespace trifinger_cameras
 {
@@ -49,7 +49,7 @@ namespace trifinger_cameras
  */
 bool readCalibrationYml(std::istream& in,
                         std::string& camera_name,
-                        sensor_msgs::CameraInfo& cam_info);
+                        CameraParameters& cam_info);
 
 /**
  * \brief Read calibration parameters from a YAML file.
@@ -60,6 +60,6 @@ bool readCalibrationYml(std::istream& in,
  */
 bool readCalibrationYml(const std::string& file_name,
                         std::string& camera_name,
-                        sensor_msgs::CameraInfo& cam_info);
+                        CameraParameters& cam_info);
 
-}  // namespace camera_calibration_parsers
+}  // namespace trifinger_cameras
