@@ -67,15 +67,25 @@ void yaml_to_eigen(const YAML::Node& node, T& m)
     int rows, cols;
 
     rows = node["rows"].as<int>();
-    assert(rows == m.rows());
+    if (rows != m.rows())
+    {
+        throw std::runtime_error("Invalid number of rows. Expected " +
+                                 std::to_string(rows) + ", got " +
+                                 std::to_string(m.rows()));
+    }
     cols = node["cols"].as<int>();
-    assert(cols == m.cols());
+    if (cols != m.cols())
+    {
+        throw std::runtime_error("Invalid number of cols. Expected " +
+                                 std::to_string(cols) + ", got " +
+                                 std::to_string(m.cols()));
+    }
 
     const YAML::Node& data = node["data"];
     for (int i = 0; i < rows * cols; ++i)
     {
-        int r = i / rows;
-        int c = i - r * cols;
+        int r = i / cols;
+        int c = i % cols;
         m(r, c) = data[i].as<double>();
     }
 }
@@ -90,11 +100,10 @@ void operator>>(const YAML::Node& node, Eigen::Matrix4d& m)
     yaml_to_eigen(node, m);
 }
 
-void operator>>(const YAML::Node& node, Eigen::Matrix<double, 5, 1>& m)
+void operator>>(const YAML::Node& node, Eigen::Matrix<double, 1, 5>& m)
 {
     yaml_to_eigen(node, m);
 }
-
 
 /// \endcond
 
@@ -140,7 +149,7 @@ bool readCalibrationYml(std::istream& in,
 
         return true;
     }
-    catch (YAML::Exception& e)
+    catch (std::exception& e)
     {
         std::cerr << "Exception parsing YAML camera calibration:\n"
                   << e.what() << std::endl;

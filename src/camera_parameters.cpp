@@ -12,7 +12,7 @@ std::ostream& operator<<(std::ostream& os, const CameraParameters& cp)
     os << "CameraParameters:" << std::endl
        << "image_width: " << cp.image_width << std::endl
        << "image_height: " << cp.image_height << std::endl
-       << "distortion_coefficients: " << cp.distortion_coefficients.transpose()
+       << "distortion_coefficients: " << cp.distortion_coefficients
        << std::endl
        << "camera_matrix:" << std::endl
        << cp.camera_matrix << std::endl

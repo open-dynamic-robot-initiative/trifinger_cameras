@@ -16,7 +16,7 @@ struct CameraParameters
     unsigned int image_height;
 
     Eigen::Matrix3d camera_matrix;
-    Eigen::Matrix<double, 5, 1> distortion_coefficients;
+    Eigen::Matrix<double, 1, 5> distortion_coefficients;
 
     Eigen::Matrix4d tf_world_to_camera;
 };
