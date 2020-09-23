@@ -87,7 +87,6 @@ def calibrate_mean_extrinsic_parameters(
     camera_matrix,
     dist_coeffs,
     image_files,
-    extrinsic_calibration_filename,
     impose_cube=True,
 ):
     """Calibrate extrinsic parameters of the camera.
@@ -103,10 +102,12 @@ def calibrate_mean_extrinsic_parameters(
         intrinsic calibration function.
         image_files (list): list of image files.
         taken for the Charuco board centered at (0, 0, 0).
-        extrinsic_calibration_filename (str):  filepath that will be used
         to write the extrinsic calibration results in.
         impose_cube (bool): boolean whether to output a virtual cube
         imposed on the first square of the board or not.
+
+    Returns:
+        The camera parameters including the camera pose.
     """
 
     handler = CharucoBoardHandler(
@@ -301,7 +302,7 @@ def calibrate_mean_extrinsic_parameters(
     print("Rel std proj matrix:")
     print(camera_params.tf_world_to_camera_std / camera_params.tf_world_to_camera)
 
-    save_parameter_file(camera_params, extrinsic_calibration_filename)
+    return camera_params
 
 
 def save_parameter_file(params: CameraParameters, filename: str):
@@ -387,10 +388,10 @@ def main():
         output_file_prefix = args.camera_name
 
     output_file_full = output_file_prefix + "_full.yml"
-    # output_file_cropped = output_file_prefix + "_cropped.yml"
-    # output_file_cropped_and_downsampled = (
-    #     output_file_prefix + "_cropped_and_downsampled.yml"
-    # )
+    output_file_cropped = output_file_prefix + "_cropped.yml"
+    output_file_cropped_and_downsampled = (
+        output_file_prefix + "_cropped_and_downsampled.yml"
+    )
 
     image_files = get_image_files(args.calibration_data, args.camera_name)
 
@@ -410,13 +411,22 @@ def main():
             image_files, output_file_full, args.visualize
         )
 
-    calibrate_mean_extrinsic_parameters(
+    camera_params = calibrate_mean_extrinsic_parameters(
         camera_matrix,
         dist_coeffs,
         image_files,
-        output_file_full,
         impose_cube=args.visualize,
     )
+
+    save_parameter_file(camera_params, output_file_full)
+
+    # adjust for cropped images (shift the image center)
+    camera_params.camera_matrix[0, 2] -= 88
+    save_parameter_file(camera_params, output_file_cropped)
+
+    # adjust for downsampled images (divide pixel values by 2)
+    camera_params.camera_matrix[:2, :] /= 2
+    save_parameter_file(camera_params, output_file_cropped_and_downsampled)
 
 
 if __name__ == "__main__":
