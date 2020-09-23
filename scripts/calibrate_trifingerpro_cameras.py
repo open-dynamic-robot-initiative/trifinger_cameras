@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""Script for generating the calibration data for the cameras and verifying the
- output.
+"""Calibrate cameras of the TriFingerPro platform.
+
+Calibrates the cameras based on a set of images recorded with the TriFingerPro
+calibration board holder.
 """
 
 from trifinger_cameras.charuco_board_handler import CharucoBoardHandler
