@@ -16,6 +16,12 @@ from trifinger_cameras.charuco_board_handler import CharucoBoardHandler
 from trifinger_cameras.camera_calibration_file import CameraCalibrationFile
 
 
+BOARD_SIZE_X = 5
+BOARD_SIZE_Y = 10
+BOARD_SQUARE_SIZE = 0.04
+BOARD_MARKER_SIZE = 0.03
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -41,13 +47,22 @@ def main():
     camera_info = CameraCalibrationFile(args.c)
     camera_matrix = camera_info["camera_matrix"]
     distortion_coeffs = camera_info["distortion_coefficients"]
-    handler = CharucoBoardHandler(camera_matrix, distortion_coeffs)
+    handler = CharucoBoardHandler(
+        BOARD_SIZE_X,
+        BOARD_SIZE_Y,
+        BOARD_SQUARE_SIZE,
+        BOARD_MARKER_SIZE,
+        camera_matrix,
+        distortion_coeffs,
+    )
 
     points = np.vstack(
         [
             x.flatten()
             for x in np.meshgrid(
-                np.arange(-0.3, 0.4, 0.1), np.arange(-0.3, 0.4, 0.1), [0.0],
+                np.arange(-0.3, 0.4, 0.1),
+                np.arange(-0.3, 0.4, 0.1),
+                [0.0],
             )
         ]
     ).T
@@ -66,7 +81,11 @@ def main():
         rvec = cv2.Rodrigues(pose_mat[:3, :3])[0]
 
     imgpoints, _ = cv2.projectPoints(
-        points, rvec, tvec, camera_matrix, distortion_coeffs,
+        points,
+        rvec,
+        tvec,
+        camera_matrix,
+        distortion_coeffs,
     )
 
     for imgpoint in imgpoints:

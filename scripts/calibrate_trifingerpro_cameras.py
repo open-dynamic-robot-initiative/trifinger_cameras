@@ -10,7 +10,7 @@ import numpy as np
 import cv2
 import yaml
 import os
-import glob
+import typing
 
 
 BOARD_SIZE_X = 5
@@ -19,14 +19,32 @@ BOARD_SQUARE_SIZE = 0.04
 BOARD_MARKER_SIZE = 0.03
 
 
-def calibrate_intrinsic_parameters(calibration_data, calibration_results_file):
+def get_image_files(data_dir: str, camera_name: str) -> typing.List[str]:
+    image_paths: typing.List[str] = []
+
+    # We expect image directories 0001 to 0036
+    filename = camera_name + ".png"
+    for i in range(1, 37):
+        subdir_name = "{:04d}".format(i)
+        image_path = os.path.join(data_dir, subdir_name, filename)
+
+        if not os.path.exists(image_path):
+            raise RuntimeError("{} does not exist".format(image_path))
+
+        image_paths.append(image_path)
+
+    return image_paths
+
+
+def calibrate_intrinsic_parameters(
+    image_files, calibration_results_file, visualize=False
+):
     """Calibrate intrinsic parameters of the camera given different images
     taken for the Charuco board from different views, the resulting parameters
     are saved to the provided filename.
 
     Args:
-        calibration_data (str):  directory of the stored images of the
-        Charuco board.
+        image_files (list):  List of calibration image files.
         calibration_results_file (str):  filepath that will be used to write
         the calibration results in.
     """
@@ -34,10 +52,8 @@ def calibrate_intrinsic_parameters(calibration_data, calibration_results_file):
         BOARD_SIZE_X, BOARD_SIZE_Y, BOARD_SQUARE_SIZE, BOARD_MARKER_SIZE
     )
 
-    pattern = os.path.join(calibration_data, "*.png")
-    files = glob.glob(pattern)
     camera_matrix, dist_coeffs, error = handler.calibrate(
-        files, visualize=True
+        image_files, visualize=visualize
     )
     camera_info = dict()
     camera_info["camera_matrix"] = dict()
@@ -60,155 +76,25 @@ def calibrate_intrinsic_parameters(calibration_data, calibration_results_file):
     return camera_matrix, dist_coeffs
 
 
-def calibrate_extrinsic_parameters(
-    calibration_results_file,
-    charuco_centralized_image_filename,
-    extrinsic_calibration_filename,
-    impose_cube=True,
-):
-    """Calibrate extrinsic parameters of the camera given one image taken for
-    the Charuco board centered at (0, 0, 0) the resulting parameters are
-    saved to the provided filename and a virtual cube is imposed on the
-    board for verification.
-
-    Args:
-        calibration_results_file (str):  filepath that will be used to read
-        the intrinsic calibration results.
-        charuco_centralized_image_filename (str): filename of the image
-        taken for the Charuco board centered at (0, 0, 0).
-        extrinsic_calibration_filename (str):  filepath that will be used
-        to write the extrinsic calibration results in.
-        impose_cube (bool): boolean whether to output a virtual cube
-        imposed on the first square of the board or not.
-    """
-    with open(calibration_results_file) as file:
-        calibration_data = yaml.safe_load(file)
-
-    def config_matrix(data):
-        return np.array(data["data"]).reshape(data["rows"], data["cols"])
-
-    camera_matrix = config_matrix(calibration_data["camera_matrix"])
-    dist_coeffs = config_matrix(calibration_data["distortion_coefficients"])
-
-    handler = CharucoBoardHandler(
-        BOARD_SIZE_X,
-        BOARD_SIZE_Y,
-        BOARD_SQUARE_SIZE,
-        BOARD_MARKER_SIZE,
-        camera_matrix,
-        dist_coeffs,
-    )
-
-    rvec, tvec = handler.detect_board_in_image(
-        charuco_centralized_image_filename, visualize=False
-    )
-
-    # projection_matrix = np.zeros((4, 4))
-    projection_matrix = utils.rodrigues_to_matrix(rvec)
-    projection_matrix[0:3, 3] = tvec[:, 0]
-    projection_matrix[3, 3] = 1
-
-    calibration_data["projection_matrix"] = dict()
-    calibration_data["projection_matrix"]["rows"] = 4
-    calibration_data["projection_matrix"]["cols"] = 4
-    calibration_data["projection_matrix"][
-        "data"
-    ] = projection_matrix.flatten().tolist()
-
-    with open(extrinsic_calibration_filename, "w") as outfile:
-        yaml.dump(
-            calibration_data,
-            outfile,
-            default_flow_style=False,
-        )
-
-    if impose_cube:
-        new_object_points = (
-            np.array(
-                [
-                    [0, 0, 0],
-                    [0, 1, 0],
-                    [1, 0, 0],
-                    [1, 1, 0],
-                    [0, 0, 1],
-                    [0, 1, 1],
-                    [1, 0, 1],
-                    [1, 1, 1],
-                ],
-                dtype=np.float32,
-            )
-            * 0.04
-        )
-
-        world_origin_points = (
-            np.array(
-                [
-                    [0, 0, 0],
-                    [0, 1, 0],
-                    [1, 0, 0],
-                    [0, 0, 1],
-                ],
-                dtype=np.float32,
-            )
-            * 0.1
-        )
-
-        # cube
-        point_pairs = (
-            (0, 4),
-            (1, 5),
-            (2, 6),
-            (3, 7),
-            (0, 1),
-            (0, 2),
-            (1, 3),
-            (2, 3),
-            (4, 5),
-            (4, 6),
-            (5, 7),
-            (6, 7),
-        )
-
-        img = cv2.imread(charuco_centralized_image_filename)
-        imgpoints, _ = cv2.projectPoints(
-            new_object_points,
-            rvec,
-            tvec,
-            camera_matrix,
-            dist_coeffs,
-        )
-
-        for p1, p2 in point_pairs:
-            cv2.line(
-                img,
-                tuple(imgpoints[p1, 0]),
-                tuple(imgpoints[p2, 0]),
-                [200, 200, 0],
-                thickness=2,
-            )
-
-        cv2.imshow("Imposed Cube", img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-
-
 def calibrate_mean_extrinsic_parameters(
     camera_matrix,
     dist_coeffs,
-    charuco_centralized_image_dir,
+    image_files,
     extrinsic_calibration_filename,
     impose_cube=True,
 ):
-    """Calibrate extrinsic parameters of the camera given several imaeges taken for
-    the Charuco board centered at (0, 0, 0). transform the extrinsic parameters into the
-    fixed 'world' coordinate system.
-    the resulting parameters are averaged for all images and saved to the provided filename.
-    a virtual cube on the board as well as the world coordinates axes are imposed for verification.
+    """Calibrate extrinsic parameters of the camera.
+
+    Calibrate extrinsic parameters given several images taken of the Charuco
+    board at defined poses.  Transform the extrinsic parameters into the fixed
+    'world' coordinate system.  The resulting parameters are averaged for all
+    images and saved to the provided filename.
 
     Args:
-        camera_matrix, dist_coeffs:  output of the intrinsic calibration (either read from file or directly obtained from
+        camera_matrix, dist_coeffs:  output of the intrinsic calibration
+            (either read from file or directly obtained from
         intrinsic calibration function.
-        charuco_centralized_image_dir (str): directory containing images
+        image_files (list): list of image files.
         taken for the Charuco board centered at (0, 0, 0).
         extrinsic_calibration_filename (str):  filepath that will be used
         to write the extrinsic calibration results in.
@@ -225,25 +111,27 @@ def calibrate_mean_extrinsic_parameters(
         dist_coeffs,
     )
 
-    file_pattern = "*.png"
-    pattern = os.path.join(charuco_centralized_image_dir, file_pattern)
-
     ind = 0
-    projection_matrix = np.zeros((len(glob.glob(pattern)), 4, 4))
+    projection_matrix = np.zeros((len(image_files), 4, 4))
 
-    for filename in glob.glob(pattern):
+    for i, filename in enumerate(image_files):
+        # verify that images are given in the expected order
+        assert "{:04d}".format(i + 1) in filename
+
         img = cv2.imread(filename)
 
         rvec, tvec = handler.detect_board_in_image(filename, visualize=False)
 
-        # geometric data of the calibration board with respect to the 'world' coordinates
+        # geometric data of the calibration board with respect to the 'world'
+        # coordinates
 
         # inclination angle of the board (CAD data)
         alpha = 22
         alphr = np.radians(alpha)
         # half-width of the calibration board (CAD data)
         Dx = 0.105
-        # projected (on the base) half-height of the calibration board (CAD data)
+        # projected (on the base) half-height of the calibration board (CAD
+        # data)
         Dy = 0.16054
 
         # thickness of the base-plate (measured)
@@ -274,8 +162,8 @@ def calibrate_mean_extrinsic_parameters(
         xrot = np.array([1, 0, 0]) * np.radians(-alpha)
         xMat = cv2.Rodrigues(xrot)[0]
 
-        # (really dirty method to get) rotation angle of the calibration board
-        zrot = int(filename[-6:-4])
+        # get rotation angle of the calibration board
+        zrot = i + 1
         zrot = (zrot - 1) * 10
         zrot = np.radians(zrot)
         zrot = np.matmul(xMat, np.array([0, 0, 1])) * zrot
@@ -442,104 +330,75 @@ def calibrate_mean_extrinsic_parameters(
 def main():
     """Execute an action depending on arguments passed by the user."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "action",
-        choices=[
-            "intrinsic_calibration",
-            "extrinsic_calibration",
-            "extrinsic_mean",
-        ],
-        help="""Action that is executed.""",
-    )
 
     parser.add_argument(
-        "--intrinsic_calibration_filename",
-        type=str,
-        help="""Filename used for saving intrinsic calibration
-                        data or loading it""",
-    )
-
-    parser.add_argument(
-        "--calibration_data",
+        "calibration_data",
         type=str,
         help="""Path to the calibration data directory .""",
     )
 
     parser.add_argument(
-        "--extrinsic_calibration_filename",
+        "output_file_prefix",
         type=str,
-        help="""Filename used for saving intrinsic calibration
-                         data.""",
+        help="Prefix for the output files.",
     )
+
     parser.add_argument(
-        "--image_view_filename",
+        "--camera-name",
+        "-c",
+        choices=["camera60", "camera180", "camera300"],
+        required=True,
+        help="""Name of the camera.""",
+    )
+
+    parser.add_argument(
+        "--visualize",
+        "-v",
+        action="store_true",
+        help="Visualize board detection.",
+    )
+
+    parser.add_argument(
+        "--intrinsic-file",
         type=str,
-        help="""Image with charuco centralized at the (0, 0, 0)
-                        position.""",
+        help="""Load intrinsic parameters from this file.
+            If not specified, they are computed from the images.
+        """,
     )
 
     args = parser.parse_args()
 
-    if args.action == "intrinsic_calibration":
-        if not args.intrinsic_calibration_filename:
-            raise RuntimeError("intrinsic_calibration_filename not specified.")
-        if not args.calibration_data:
-            raise RuntimeError("calibration_data not specified.")
-        calibrate_intrinsic_parameters(
-            args.calibration_data, args.intrinsic_calibration_filename
+    output_file_full = args.output_file_prefix + "_full.yml"
+    # output_file_cropped = args.output_file_prefix + "_cropped.yml"
+    # output_file_cropped_and_downsampled = (
+    #     args.output_file_prefix + "_cropped_and_downsampled.yml"
+    # )
+
+    image_files = get_image_files(args.calibration_data, args.camera_name)
+
+    if args.intrinsic_file:
+        with open(args.intrinsic_file) as file:
+            calibration_data = yaml.safe_load(file)
+
+        def config_matrix(data):
+            return np.array(data["data"]).reshape(data["rows"], data["cols"])
+
+        camera_matrix = config_matrix(calibration_data["camera_matrix"])
+        dist_coeffs = config_matrix(
+            calibration_data["distortion_coefficients"]
         )
-    elif args.action == "extrinsic_calibration":
-        if not args.intrinsic_calibration_filename:
-            raise RuntimeError("intrinsic_calibration_filename not specified.")
-        if not args.extrinsic_calibration_filename:
-            raise RuntimeError("extrinsic_calibration_filename not specified.")
-        if not args.image_view_filename:
-            raise RuntimeError("image_view_filename not specified.")
-        calibrate_extrinsic_parameters(
-            args.intrinsic_calibration_filename,
-            args.image_view_filename,
-            args.extrinsic_calibration_filename,
-            impose_cube=True,
+    else:
+        camera_matrix, dist_coeffs = calibrate_intrinsic_parameters(
+            image_files, output_file_full, args.visualize
         )
 
-    elif args.action == "extrinsic_mean":
-
-        if (
-            not args.calibration_data
-            and not args.intrinsic_calibration_filename
-        ):
-            raise RuntimeError(
-                "neither calibration_data nor intrinsic_calibration_filename not specified."
-            )
-
-        if not args.extrinsic_calibration_filename:
-            raise RuntimeError("extrinsic_calibration_filename not specified.")
-
-        if args.intrinsic_calibration_filename:
-            with open(args.intrinsic_calibration_filename) as file:
-                calibration_data = yaml.safe_load(file)
-
-            def config_matrix(data):
-                return np.array(data["data"]).reshape(
-                    data["rows"], data["cols"]
-                )
-
-            camera_matrix = config_matrix(calibration_data["camera_matrix"])
-            dist_coeffs = config_matrix(
-                calibration_data["distortion_coefficients"]
-            )
-        else:
-            camera_matrix, dist_coeffs = calibrate_intrinsic_parameters(
-                args.calibration_data, args.extrinsic_calibration_filename
-            )
-
-        calibrate_mean_extrinsic_parameters(
-            camera_matrix,
-            dist_coeffs,
-            args.calibration_data,
-            args.extrinsic_calibration_filename,
-            impose_cube=True,
-        )
+    calibrate_mean_extrinsic_parameters(
+        camera_matrix,
+        dist_coeffs,
+        image_files,
+        output_file_full,
+        impose_cube=args.visualize,
+    )
 
 
 if __name__ == "__main__":

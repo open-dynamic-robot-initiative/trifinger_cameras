@@ -3,6 +3,7 @@ import glob
 import json
 import os
 import pickle
+import typing
 
 import numpy as np
 
@@ -25,17 +26,19 @@ sys.path.append(ros_path)
 class CharucoBoardHandler:
     """Provides different actions using a Charuco Board."""
 
-    def __init__(self, camera_matrix=None, dist_coeffs=None):
+    def __init__(self, size_x: int, size_y: int, square_size: float, marker_size:
+                 float, camera_matrix=None, dist_coeffs=None,
+                 ):
         """Initialize board with hard-coded parameters."""
         # use AprilTag 16h5 which contains 30 4x4 markers
         self.marker_dict = cv2.aruco.getPredefinedDictionary(
             cv2.aruco.DICT_APRILTAG_16h5
         )
 
-        self.size_x = 5
-        self.size_y = 10
-        self.square_size = 0.04
-        self.marker_size = 0.03
+        self.size_x = size_x
+        self.size_y = size_y
+        self.square_size = square_size
+        self.marker_size = marker_size
 
         self.board = cv2.aruco.CharucoBoard_create(
             self.size_x,
@@ -237,21 +240,19 @@ class CharucoBoardHandler:
         return rvec, tvec
 
     def detect_board_in_files(
-        self, directory, file_pattern="*.jpeg", visualize=False
+        self, files: typing.List[str], visualize: bool = False
     ):
         """Detect the board in multiple files.
 
-        Searches the given directory for image files matching a specific
-        pattern and tries to detect the board in each of them.
+        Tries to detect the Charuco board in the given list of image files.
 
         Args:
-            directory (str):  Path to the directory containing the images.
-            file_pattern (str):  Pattern to match files in the given directory.
+            files:  List of paths to image files.
             visualize (bool):  If True, each image is shown for one second,
                 visualizing the board if it is detected.
 
         Returns:
-            (tuple): Tuple containing:
+            tuple: Tuple containing
 
                 - all_corners:  List of lists of pixel-positions of detected
                       charuco corners (one element per image).
@@ -263,8 +264,7 @@ class CharucoBoardHandler:
         all_corners = []
         all_ids = []
 
-        pattern = os.path.join(directory, file_pattern)
-        for filename in glob.glob(pattern):
+        for filename in files:
             img = cv2.imread(filename)
             charuco_corners, charuco_ids, rvec, tvec = self.detect_board(img)
             if charuco_ids is not None:
@@ -285,21 +285,18 @@ class CharucoBoardHandler:
 
     def calibrate(
         self,
-        calibration_data_directory,
-        file_pattern="*.png",
-        visualize=False,
+        files: typing.List[str],
+        visualize: bool = False,
     ):
         """Calibrate camera given a directory of images.
 
-        Loads images from the specified directory and uses them for
-        Charuco-based camera calibration.
+        Loads the given images and uses them for Charuco-based camera
+        calibration.
         The resulting coefficients are printed to stdout and stored internally
         so they are used when detecting boards later on.
 
         Args:
-            calibration_data_directory (str):  Directory containing the images.
-            file_pattern (str):  Pattern to match the image files in the given
-                directory.
+            files (list):  List of image files.
             visualize (bool):  If True, visualize the detected corners when
                 loading the images and visualize again after the calibration
                 including the pose of the board.
@@ -309,7 +306,7 @@ class CharucoBoardHandler:
         self.dist_coeffs = None
 
         all_corners, all_ids, image_size = self.detect_board_in_files(
-            calibration_data_directory, file_pattern, visualize
+            files, visualize
         )
 
         camera_matrix = np.zeros((3, 3))
@@ -339,7 +336,5 @@ class CharucoBoardHandler:
         if visualize:
             # load the boards again to re-detect the boards with camera
             # calibration data
-            self.detect_board_in_files(
-                calibration_data_directory, file_pattern, visualize
-            )
+            self.detect_board_in_files(files, visualize)
         return camera_matrix, dist_coeffs, error
