@@ -12,7 +12,9 @@ from trifinger_cameras import utils
 def main():
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument(
-        "filename", type=str, help="""Path to the log file.""",
+        "filename",
+        type=str,
+        help="""Path to the log file.""",
     )
     args = argparser.parse_args()
 
