@@ -332,15 +332,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
 
     parser.add_argument(
-        "calibration_data",
+        "--calibration-data",
+        "-d",
         type=str,
         help="""Path to the calibration data directory .""",
-    )
-
-    parser.add_argument(
-        "output_file_prefix",
-        type=str,
-        help="Prefix for the output files.",
     )
 
     parser.add_argument(
@@ -349,6 +344,12 @@ def main():
         choices=["camera60", "camera180", "camera300"],
         required=True,
         help="""Name of the camera.""",
+    )
+
+    parser.add_argument(
+        "--output-file-prefix",
+        type=str,
+        help="Prefix for the output files. If not set the camera name is used",
     )
 
     parser.add_argument(
@@ -368,10 +369,15 @@ def main():
 
     args = parser.parse_args()
 
-    output_file_full = args.output_file_prefix + "_full.yml"
-    # output_file_cropped = args.output_file_prefix + "_cropped.yml"
+    if args.output_file_prefix:
+        output_file_prefix = args.output_file_prefix
+    else:
+        output_file_prefix = args.camera_name
+
+    output_file_full = output_file_prefix + "_full.yml"
+    # output_file_cropped = output_file_prefix + "_cropped.yml"
     # output_file_cropped_and_downsampled = (
-    #     args.output_file_prefix + "_cropped_and_downsampled.yml"
+    #     output_file_prefix + "_cropped_and_downsampled.yml"
     # )
 
     image_files = get_image_files(args.calibration_data, args.camera_name)
