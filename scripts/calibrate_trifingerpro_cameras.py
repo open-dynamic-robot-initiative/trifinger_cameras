@@ -302,7 +302,9 @@ def calibrate_mean_extrinsic_parameters(
     print("Std proj matrix:")
     print(camera_params.tf_world_to_camera_std)
     print("Rel std proj matrix:")
-    print(camera_params.tf_world_to_camera_std / camera_params.tf_world_to_camera)
+    print(
+        camera_params.tf_world_to_camera_std / camera_params.tf_world_to_camera
+    )
 
     return camera_params
 
