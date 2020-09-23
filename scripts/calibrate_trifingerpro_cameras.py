@@ -19,6 +19,13 @@ BOARD_SQUARE_SIZE = 0.04
 BOARD_MARKER_SIZE = 0.03
 
 
+class CameraParameters:
+    camera_matrix: np.ndarray
+    dist_coeffs: np.ndarray
+    tf_world_to_camera: np.ndarray
+    tf_world_to_camera_std: np.ndarray
+
+
 def get_image_files(data_dir: str, camera_name: str) -> typing.List[str]:
     image_paths: typing.List[str] = []
 
@@ -111,8 +118,10 @@ def calibrate_mean_extrinsic_parameters(
         dist_coeffs,
     )
 
+    camera_params = CameraParameters()
+
     ind = 0
-    projection_matrix = np.zeros((len(image_files), 4, 4))
+    pose_matrix = np.zeros((len(image_files), 4, 4))
 
     for i, filename in enumerate(image_files):
         # verify that images are given in the expected order
@@ -176,9 +185,9 @@ def calibrate_mean_extrinsic_parameters(
         )[0]
         #        embed()
 
-        projection_matrix[ind, 0:4, 0:4] = utils.rodrigues_to_matrix(rvecW)
-        projection_matrix[ind, 0:3, 3] = tvecW
-        projection_matrix[ind, 3, 3] = 1
+        pose_matrix[ind, 0:4, 0:4] = utils.rodrigues_to_matrix(rvecW)
+        pose_matrix[ind, 0:3, 3] = tvecW
+        pose_matrix[ind, 3, 3] = 1
 
         ind += 1
 
@@ -280,46 +289,49 @@ def calibrate_mean_extrinsic_parameters(
 
     cv2.destroyAllWindows()
 
-    projection_matrix_std = np.std(projection_matrix, axis=0)
-    projection_matrix = np.mean(projection_matrix, axis=0)
+    camera_params.camera_matrix = camera_matrix
+    camera_params.dist_coeffs = dist_coeffs
+    camera_params.tf_world_to_camera_std = np.std(pose_matrix, axis=0)
+    camera_params.tf_world_to_camera = np.mean(pose_matrix, axis=0)
 
     print("Mean proj matrix:")
-    print(projection_matrix)
+    print(camera_params.tf_world_to_camera)
     print("Std proj matrix:")
-    print(projection_matrix_std)
+    print(camera_params.tf_world_to_camera_std)
     print("Rel std proj matrix:")
-    print(projection_matrix_std / projection_matrix)
+    print(camera_params.tf_world_to_camera_std / camera_params.tf_world_to_camera)
 
+    save_parameter_file(camera_params, extrinsic_calibration_filename)
+
+
+def save_parameter_file(params: CameraParameters, filename: str):
     # save all the data
     calibration_data = dict()
-    calibration_data["camera_matrix"] = dict()
-    calibration_data["camera_matrix"]["rows"] = 3
-    calibration_data["camera_matrix"]["cols"] = 3
-    calibration_data["camera_matrix"][
-        "data"
-    ] = camera_matrix.flatten().tolist()
-    calibration_data["distortion_coefficients"] = dict()
-    calibration_data["distortion_coefficients"]["rows"] = 1
-    calibration_data["distortion_coefficients"]["cols"] = 5
-    calibration_data["distortion_coefficients"][
-        "data"
-    ] = dist_coeffs.flatten().tolist()
+    calibration_data["camera_matrix"] = {
+        "rows": 3,
+        "cols": 3,
+        "data": params.camera_matrix.flatten().tolist(),
+    }
 
-    calibration_data["projection_matrix"] = dict()
-    calibration_data["projection_matrix"]["rows"] = 4
-    calibration_data["projection_matrix"]["cols"] = 4
-    calibration_data["projection_matrix"][
-        "data"
-    ] = projection_matrix.flatten().tolist()
+    calibration_data["distortion_coefficients"] = {
+        "rows": 1,
+        "cols": 5,
+        "data": params.dist_coeffs.flatten().tolist(),
+    }
 
-    calibration_data["projection_matrix_std"] = dict()
-    calibration_data["projection_matrix_std"]["rows"] = 4
-    calibration_data["projection_matrix_std"]["cols"] = 4
-    calibration_data["projection_matrix_std"][
-        "data"
-    ] = projection_matrix_std.flatten().tolist()
+    calibration_data["tf_world_to_camera"] = {
+        "rows": 4,
+        "cols": 4,
+        "data": params.tf_world_to_camera.flatten().tolist(),
+    }
 
-    with open(extrinsic_calibration_filename, "w") as outfile:
+    calibration_data["tf_world_to_camera_std"] = {
+        "rows": 4,
+        "cols": 4,
+        "data": params.tf_world_to_camera_std.flatten().tolist(),
+    }
+
+    with open(filename, "w") as outfile:
         yaml.dump(
             calibration_data,
             outfile,
