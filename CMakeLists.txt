@@ -32,7 +32,7 @@ search_for_eigen()
 catkin_python_setup()
 
 catkin_package(
-    INCLUDE_DIRS include
+    INCLUDE_DIRS include ${Pylon_INCLUDE_DIRS}
     LIBRARIES
         camera_observations
         opencv_driver
@@ -40,6 +40,8 @@ catkin_package(
         ${tricamera_driver}
         pybullet_tricamera_driver
         camera_calibration_parser
+    CFG_EXTRAS
+        cfg_extras.cmake
 )
 
 
