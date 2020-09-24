@@ -22,6 +22,9 @@ BOARD_MARKER_SIZE = 0.03
 
 
 class CameraParameters:
+    camera_name: str
+    image_width: int
+    image_height: int
     camera_matrix: np.ndarray
     dist_coeffs: np.ndarray
     tf_world_to_camera: np.ndarray
@@ -131,6 +134,9 @@ def calibrate_mean_extrinsic_parameters(
         assert "{:04d}".format(i + 1) in filename
 
         img = cv2.imread(filename)
+
+        camera_params.image_height = img.shape[0]
+        camera_params.image_width = img.shape[1]
 
         rvec, tvec = handler.detect_board_in_image(filename, visualize=False)
 
@@ -311,7 +317,12 @@ def calibrate_mean_extrinsic_parameters(
 
 def save_parameter_file(params: CameraParameters, filename: str):
     # save all the data
-    calibration_data = dict()
+    calibration_data = {
+        "camera_name": params.camera_name,
+        "image_height": params.image_height,
+        "image_width": params.image_width,
+    }
+
     calibration_data["camera_matrix"] = {
         "rows": 3,
         "cols": 3,
@@ -422,13 +433,19 @@ def main():
         impose_cube=args.visualize,
     )
 
+    camera_params.camera_name = args.camera_name
+
     save_parameter_file(camera_params, output_file_full)
 
     # adjust for cropped images (shift the image center)
+    camera_params.image_height = 540
+    camera_params.image_width = 540
     camera_params.camera_matrix[0, 2] -= 88
     save_parameter_file(camera_params, output_file_cropped)
 
     # adjust for downsampled images (divide pixel values by 2)
+    camera_params.image_height = camera_params.image_height // 2
+    camera_params.image_width = camera_params.image_width // 2
     camera_params.camera_matrix[:2, :] /= 2
     save_parameter_file(camera_params, output_file_cropped_and_downsampled)
 
