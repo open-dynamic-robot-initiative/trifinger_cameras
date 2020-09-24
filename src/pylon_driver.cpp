@@ -125,25 +125,7 @@ CameraObservation PylonDriver::get_observation()
             // pattern. This is done by iterating in steps of 4 over the
             // original image, keeping the first two rows/columns and discarding
             // the second two.
-            image_frame.image =
-                cv::Mat(image.cols / 2, image.rows / 2, CV_8UC1);
-            for (int r = 0; r < image_frame.height; r += 2)
-            {
-                for (int c = 0; c < image_frame.width; c += 2)
-                {
-                    int r2 = r * 2;
-                    int c2 = c * 2;
-
-                    image_frame.image.at<uint8_t>(r, c) =
-                        image.at<uint8_t>(r2, c2);
-                    image_frame.image.at<uint8_t>(r + 1, c) =
-                        image.at<uint8_t>(r2 + 1, c2);
-                    image_frame.image.at<uint8_t>(r, c + 1) =
-                        image.at<uint8_t>(r2, c2 + 1);
-                    image_frame.image.at<uint8_t>(r + 1, c + 1) =
-                        image.at<uint8_t>(r2 + 1, c2 + 1);
-                }
-            }
+            image_frame.image = downsample_raw_image(image);
         }
         else
         {
@@ -156,6 +138,35 @@ CameraObservation PylonDriver::get_observation()
     }
 
     return image_frame;
+}
+
+cv::Mat PylonDriver::downsample_raw_image(const cv::Mat &image)
+{
+    // Downsample resolution by factor 2.  We are operating on the raw
+    // image here, so we need to be careful to preserve the Bayer
+    // pattern. This is done by iterating in steps of 4 over the
+    // original image, keeping the first two rows/columns and discarding
+    // the second two.
+    cv::Mat downsampled(image.cols / 2, image.rows / 2, CV_8UC1);
+    for (int r = 0; r < downsampled.rows; r += 2)
+    {
+        for (int c = 0; c < downsampled.cols; c += 2)
+        {
+            int r2 = r * 2;
+            int c2 = c * 2;
+
+            downsampled.at<uint8_t>(r, c) =
+                image.at<uint8_t>(r2, c2);
+            downsampled.at<uint8_t>(r + 1, c) =
+                image.at<uint8_t>(r2 + 1, c2);
+            downsampled.at<uint8_t>(r, c + 1) =
+                image.at<uint8_t>(r2, c2 + 1);
+            downsampled.at<uint8_t>(r + 1, c + 1) =
+                image.at<uint8_t>(r2 + 1, c2 + 1);
+        }
+    }
+
+    return downsampled;
 }
 
 void PylonDriver::set_camera_configuration(GenApi::INodeMap& nodemap)
