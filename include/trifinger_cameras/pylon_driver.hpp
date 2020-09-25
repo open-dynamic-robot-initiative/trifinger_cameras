@@ -41,6 +41,17 @@ public:
     ~PylonDriver();
 
     /**
+     * @brief Downsample raw Bayer pattern by factor 2.
+     *
+     * Downsample a raw image by factor two, preserving the Bayer pattern.
+     *
+     * @param image Original image.
+     *
+     * @return Downsampled image.
+     */
+    static cv::Mat downsample_raw_image(const cv::Mat &image);
+
+    /**
      * @brief Get the latest observation (image frame + timestamp of when the
      * frame's grabbed).
      * @return CameraObservation
