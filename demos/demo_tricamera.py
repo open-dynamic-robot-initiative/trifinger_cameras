@@ -31,6 +31,8 @@ def main():
     )
     args = argparser.parse_args()
 
+    camera_names = ["camera60", "camera180", "camera300"]
+
     if args.multi_process:
         camera_data = trifinger_cameras.tricamera.MultiProcessData(
             "tricamera", False
@@ -38,7 +40,7 @@ def main():
     else:
         camera_data = trifinger_cameras.tricamera.SingleProcessData()
         camera_driver = trifinger_cameras.tricamera.TriCameraDriver(
-            "camera60", "camera180", "camera300"
+            *camera_names
         )
         camera_backend = trifinger_cameras.tricamera.Backend(  # noqa
             camera_driver, camera_data
@@ -49,18 +51,10 @@ def main():
 
     while True:
         observation = camera_frontend.get_latest_observation()
-        window_60 = "Image Stream camera60"
-        window_180 = "Image Stream camera180"
-        window_300 = "Image Stream camera300"
-        cv2.imshow(
-            window_180, utils.convert_image(observation.cameras[0].image)
-        )
-        cv2.imshow(
-            window_300, utils.convert_image(observation.cameras[1].image)
-        )
-        cv2.imshow(
-            window_60, utils.convert_image(observation.cameras[2].image)
-        )
+        for i, name in enumerate(camera_names):
+            cv2.imshow(
+                name, utils.convert_image(observation.cameras[i].image)
+            )
 
         # stop if either "q" or ESC is pressed
         if cv2.waitKey(3) in [ord("q"), 27]:  # 27 = ESC
