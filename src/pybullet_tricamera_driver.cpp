@@ -59,9 +59,9 @@ PyBulletTriCameraDriver::get_observation()
         }
     }
 
-    // run at around 30 Hz
+    // run at around 10 Hz
     using namespace std::chrono_literals;
-    std::this_thread::sleep_until(start_time + 30ms);
+    std::this_thread::sleep_until(start_time + 100ms);
 
     return tricam_obs;
 }
