@@ -52,16 +52,16 @@ PyBulletTriCameraDriver::get_observation()
         {
             // ensure that the image array is contiguous in memory, otherwise
             // conversion to cv::Mat would fail
-            images[i] = numpy_.attr("ascontiguousarray")(images[i]);
+            auto image = numpy_.attr("ascontiguousarray")(images[i]);
             // convert to cv::Mat
-            images[i] = cvMat_(images[i]);
-            tricam_obs.cameras[i].image = images[i].cast<cv::Mat>();
+            image = cvMat_(image);
+            tricam_obs.cameras[i].image = image.cast<cv::Mat>();
         }
     }
 
-    // run at around 30 Hz
+    // run at around 10 Hz
     using namespace std::chrono_literals;
-    std::this_thread::sleep_until(start_time + 30ms);
+    std::this_thread::sleep_until(start_time + 100ms);
 
     return tricam_obs;
 }
