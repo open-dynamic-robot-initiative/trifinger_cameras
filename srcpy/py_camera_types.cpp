@@ -40,6 +40,8 @@ PYBIND11_MODULE(py_camera_types, m)
 
     pybind11::class_<CameraObservation>(m, "CameraObservation")
         .def(pybind11::init<>())
-        .def_readwrite("image", &CameraObservation::image)
-        .def_readwrite("timestamp", &CameraObservation::timestamp);
+        .def_readwrite("image", &CameraObservation::image, "The image.")
+        .def_readwrite("timestamp",
+                       &CameraObservation::timestamp,
+                       "Timestamp when the image was acquired.");
 }
