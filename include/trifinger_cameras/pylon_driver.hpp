@@ -62,6 +62,7 @@ private:
     const bool downsample_images_;
     Pylon::PylonAutoInitTerm auto_init_term_;
     Pylon::CInstantCamera camera_;
+    Pylon::CImageFormatConverter format_converter_;
 
     void set_camera_configuration(GenApi::INodeMap& nodemap);
 };
