@@ -14,6 +14,45 @@
 
 namespace trifinger_cameras
 {
+/**
+ * @brief Convert BGR image to BayerBG pattern.
+ *
+ * Reconstruct a BayerBG pattern from the given BGR image.
+ *
+ * @param bgr_image Input image in BGR format.
+ *
+ * @return Image in BayerBG format.
+ */
+cv::Mat BGR2BayerBG(const cv::Mat& bgr_image)
+{
+    // channel names, assuming input is BGR
+    constexpr int CHANNEL_RED = 2;
+    constexpr int CHANNEL_GREEN = 1;
+    constexpr int CHANNEL_BLUE = 0;
+
+    // channel map to get the following pattern (called "BG" in OpenCV):
+    //
+    //   R G
+    //   G B
+    //
+    constexpr int channel_map[2][2] = {{CHANNEL_RED, CHANNEL_GREEN},
+                                       {CHANNEL_GREEN, CHANNEL_BLUE}};
+
+    cv::Mat bayer_img(bgr_image.rows, bgr_image.cols, CV_8UC1);
+    for (int r = 0; r < bgr_image.rows; r++)
+    {
+        for (int c = 0; c < bgr_image.cols; c++)
+        {
+            int channel = channel_map[r % 2][c % 2];
+
+            bayer_img.at<uint8_t>(r, c) =
+                bgr_image.at<cv::Vec3b>(r, c)[channel];
+        }
+    }
+
+    return bayer_img;
+}
+
 PylonDriver::PylonDriver(const std::string& device_user_id,
                          bool downsample_images)
     : downsample_images_(downsample_images)
@@ -28,54 +67,53 @@ PylonDriver::PylonDriver(const std::string& device_user_id,
         throw std::runtime_error("No devices present, please connect one.");
     }
 
+    Pylon::DeviceInfoList_t::const_iterator device_iterator;
+    if (device_user_id.empty())
+    {
+        device_iterator = device_list.begin();
+        camera_.Attach(tl_factory.CreateDevice(*device_iterator));
+        std::cout << "No device ID specified. Creating a camera object "
+                     "with the first device id in the device list."
+                  << std::endl;
+    }
     else
     {
-        Pylon::DeviceInfoList_t::const_iterator device_iterator;
-        if (device_user_id.empty())
+        bool found_desired_device = false;
+
+        for (device_iterator = device_list.begin();
+             device_iterator != device_list.end();
+             ++device_iterator)
         {
-            device_iterator = device_list.begin();
+            std::string device_user_id_found(
+                device_iterator->GetUserDefinedName());
+            if (device_user_id == device_user_id_found)
+            {
+                found_desired_device = true;
+                break;
+            }
+        }
+
+        if (found_desired_device)
+        {
             camera_.Attach(tl_factory.CreateDevice(*device_iterator));
-            std::cout << "No device ID specified. Creating a camera object "
-                         "with the first device id in the device list."
-                      << std::endl;
         }
         else
         {
-            bool found_desired_device = false;
-
-            for (device_iterator = device_list.begin();
-                 device_iterator != device_list.end();
-                 ++device_iterator)
-            {
-                std::string device_user_id_found(
-                    device_iterator->GetUserDefinedName());
-                if (device_user_id == device_user_id_found)
-                {
-                    found_desired_device = true;
-                    break;
-                }
-            }
-
-            if (found_desired_device)
-            {
-                camera_.Attach(tl_factory.CreateDevice(*device_iterator));
-            }
-            else
-            {
-                Pylon::PylonTerminate();
-                throw std::runtime_error(
-                    "Device id specified doesn't correspond to any "
-                    "connected devices, please retry with a valid id.");
-            }
-
-            camera_.Open();
-            camera_.MaxNumBuffer = 5;
-
-            set_camera_configuration(camera_.GetNodeMap());
-
-            camera_.StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
+            Pylon::PylonTerminate();
+            throw std::runtime_error(
+                "Device id specified doesn't correspond to any "
+                "connected devices, please retry with a valid id.");
         }
+
+        camera_.Open();
+        camera_.MaxNumBuffer = 5;
+
+        set_camera_configuration(camera_.GetNodeMap());
+
+        camera_.StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
     }
+
+    format_converter_.OutputPixelFormat = Pylon::PixelType_BGR8packed;
 }
 
 PylonDriver::~PylonDriver()
@@ -111,24 +149,40 @@ CameraObservation PylonDriver::get_observation()
             throw std::length_error(msg.str());
         }
 
-        // NOTE: If created like this, the cv::Mat points to the memory of
-        // pylon_image!
-        cv::Mat image = cv::Mat(ptr_grab_result->GetHeight(),
-                                ptr_grab_result->GetWidth(),
-                                CV_8UC1,
-                                (uint8_t*)ptr_grab_result->GetBuffer());
-
         if (downsample_images_)
         {
-            // Downsample resolution by factor 2.  We are operating on the raw
-            // image here, so we need to be careful to preserve the Bayer
-            // pattern. This is done by iterating in steps of 4 over the
-            // original image, keeping the first two rows/columns and discarding
-            // the second two.
-            image_frame.image = downsample_raw_image(image);
+            Pylon::CPylonImage pylon_image_bgr;
+            format_converter_.Convert(pylon_image_bgr, ptr_grab_result);
+
+            // NOTE: the cv::Mat points to the memory of pylon_image_bgr!
+            cv::Mat image_bgr = cv::Mat(ptr_grab_result->GetHeight(),
+                                        ptr_grab_result->GetWidth(),
+                                        CV_8UC3,
+                                        (uint8_t*)pylon_image_bgr.GetBuffer());
+
+            // remove a bit of noise
+            cv::medianBlur(image_bgr, image_bgr, 3);
+
+            // resize image
+            constexpr float DOWNSAMPLING_FACTOR = 0.5;
+            cv::resize(image_bgr,
+                       image_bgr,
+                       cv::Size(),
+                       DOWNSAMPLING_FACTOR,
+                       DOWNSAMPLING_FACTOR,
+                       CV_INTER_LINEAR);
+
+            // convert back to BayerBG to not break the API
+            image_frame.image = BGR2BayerBG(image_bgr);
         }
         else
         {
+            // NOTE: the cv::Mat points to the memory of pylon_image!
+            cv::Mat image = cv::Mat(ptr_grab_result->GetHeight(),
+                                    ptr_grab_result->GetWidth(),
+                                    CV_8UC1,
+                                    (uint8_t*)ptr_grab_result->GetBuffer());
+
             image_frame.image = image.clone();
         }
     }
@@ -140,7 +194,7 @@ CameraObservation PylonDriver::get_observation()
     return image_frame;
 }
 
-cv::Mat PylonDriver::downsample_raw_image(const cv::Mat &image)
+cv::Mat PylonDriver::downsample_raw_image(const cv::Mat& image)
 {
     // Downsample resolution by factor 2.  We are operating on the raw
     // image here, so we need to be careful to preserve the Bayer
@@ -155,12 +209,9 @@ cv::Mat PylonDriver::downsample_raw_image(const cv::Mat &image)
             int r2 = r * 2;
             int c2 = c * 2;
 
-            downsampled.at<uint8_t>(r, c) =
-                image.at<uint8_t>(r2, c2);
-            downsampled.at<uint8_t>(r + 1, c) =
-                image.at<uint8_t>(r2 + 1, c2);
-            downsampled.at<uint8_t>(r, c + 1) =
-                image.at<uint8_t>(r2, c2 + 1);
+            downsampled.at<uint8_t>(r, c) = image.at<uint8_t>(r2, c2);
+            downsampled.at<uint8_t>(r + 1, c) = image.at<uint8_t>(r2 + 1, c2);
+            downsampled.at<uint8_t>(r, c + 1) = image.at<uint8_t>(r2, c2 + 1);
             downsampled.at<uint8_t>(r + 1, c + 1) =
                 image.at<uint8_t>(r2 + 1, c2 + 1);
         }
