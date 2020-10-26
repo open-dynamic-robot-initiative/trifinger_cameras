@@ -55,7 +55,7 @@ cv::Mat BGR2BayerBG(const cv::Mat& bgr_image)
 
 PylonDriver::PylonDriver(const std::string& device_user_id,
                          bool downsample_images)
-    : downsample_images_(downsample_images)
+    : device_user_id_(device_user_id), downsample_images_(downsample_images)
 {
     Pylon::CTlFactory& tl_factory = Pylon::CTlFactory::GetInstance();
     Pylon::PylonInitialize();
@@ -101,7 +101,8 @@ PylonDriver::PylonDriver(const std::string& device_user_id,
         {
             Pylon::PylonTerminate();
             throw std::runtime_error(
-                "Device id specified doesn't correspond to any "
+                "Device id " + device_user_id_ +
+                " doesn't correspond to any "
                 "connected devices, please retry with a valid id.");
         }
 
@@ -141,7 +142,8 @@ CameraObservation PylonDriver::get_observation()
             ptr_grab_result->GetWidth() / 2 != image_frame.width)
         {
             std::stringstream msg;
-            msg << "Size of grabbed frame (" << ptr_grab_result->GetWidth()
+            msg << device_user_id_ << ": "
+                << "Size of grabbed frame (" << ptr_grab_result->GetWidth()
                 << "x" << ptr_grab_result->GetHeight()
                 << ") does not match expected size (" << image_frame.width * 2
                 << "x" << image_frame.height * 2 << ").";
@@ -188,7 +190,8 @@ CameraObservation PylonDriver::get_observation()
     }
     else
     {
-        throw std::runtime_error("Failed to access images from the camera.");
+        throw std::runtime_error("Failed to access images from camera " +
+                                 device_user_id_ + ".");
     }
 
     return image_frame;

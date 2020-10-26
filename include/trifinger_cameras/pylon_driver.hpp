@@ -59,6 +59,7 @@ public:
     CameraObservation get_observation();
 
 private:
+    const std::string device_user_id_;
     const bool downsample_images_;
     Pylon::PylonAutoInitTerm auto_init_term_;
     Pylon::CInstantCamera camera_;
