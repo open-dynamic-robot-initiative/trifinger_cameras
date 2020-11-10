@@ -57,64 +57,74 @@ PylonDriver::PylonDriver(const std::string& device_user_id,
                          bool downsample_images)
     : device_user_id_(device_user_id), downsample_images_(downsample_images)
 {
-    Pylon::CTlFactory& tl_factory = Pylon::CTlFactory::GetInstance();
-    Pylon::PylonInitialize();
-    Pylon::DeviceInfoList_t device_list;
-
-    if (tl_factory.EnumerateDevices(device_list) == 0)
+    try
     {
-        Pylon::PylonTerminate();
-        throw std::runtime_error("No devices present, please connect one.");
-    }
+        Pylon::CTlFactory& tl_factory = Pylon::CTlFactory::GetInstance();
+        Pylon::PylonInitialize();
+        Pylon::DeviceInfoList_t device_list;
 
-    Pylon::DeviceInfoList_t::const_iterator device_iterator;
-    if (device_user_id.empty())
-    {
-        device_iterator = device_list.begin();
-        camera_.Attach(tl_factory.CreateDevice(*device_iterator));
-        std::cout << "No device ID specified. Creating a camera object "
-                     "with the first device id in the device list."
-                  << std::endl;
-    }
-    else
-    {
-        bool found_desired_device = false;
-
-        for (device_iterator = device_list.begin();
-             device_iterator != device_list.end();
-             ++device_iterator)
+        if (tl_factory.EnumerateDevices(device_list) == 0)
         {
-            std::string device_user_id_found(
-                device_iterator->GetUserDefinedName());
-            if (device_user_id == device_user_id_found)
-            {
-                found_desired_device = true;
-                break;
-            }
+            Pylon::PylonTerminate();
+            throw std::runtime_error("No devices present, please connect one.");
         }
 
-        if (found_desired_device)
+        Pylon::DeviceInfoList_t::const_iterator device_iterator;
+        if (device_user_id.empty())
         {
+            device_iterator = device_list.begin();
             camera_.Attach(tl_factory.CreateDevice(*device_iterator));
+            std::cout << "No device ID specified. Creating a camera object "
+                         "with the first device id in the device list."
+                      << std::endl;
         }
         else
         {
-            Pylon::PylonTerminate();
-            throw std::runtime_error(
-                "Device id " + device_user_id_ +
-                " doesn't correspond to any "
-                "connected devices, please retry with a valid id.");
+            bool found_desired_device = false;
+
+            for (device_iterator = device_list.begin();
+                 device_iterator != device_list.end();
+                 ++device_iterator)
+            {
+                std::string device_user_id_found(
+                    device_iterator->GetUserDefinedName());
+                if (device_user_id == device_user_id_found)
+                {
+                    found_desired_device = true;
+                    break;
+                }
+            }
+
+            if (found_desired_device)
+            {
+                camera_.Attach(tl_factory.CreateDevice(*device_iterator));
+            }
+            else
+            {
+                Pylon::PylonTerminate();
+                throw std::runtime_error(
+                    "Device id " + device_user_id_ +
+                    " doesn't correspond to any "
+                    "connected devices, please retry with a valid id.");
+            }
+
+            camera_.Open();
+            camera_.MaxNumBuffer = 5;
+
+            set_camera_configuration(camera_.GetNodeMap());
+
+            camera_.StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
         }
 
-        camera_.Open();
-        camera_.MaxNumBuffer = 5;
-
-        set_camera_configuration(camera_.GetNodeMap());
-
-        camera_.StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
+        format_converter_.OutputPixelFormat = Pylon::PixelType_BGR8packed;
     }
-
-    format_converter_.OutputPixelFormat = Pylon::PixelType_BGR8packed;
+    catch (const Pylon::GenericException& e)
+    {
+        // convert Pylon exceptions to an std exception, so it is understood by
+        // pybind11
+        throw std::runtime_error("Camera Error (" + device_user_id_ +
+                                 "): " + e.what());
+    }
 }
 
 PylonDriver::~PylonDriver()
@@ -128,70 +138,83 @@ CameraObservation PylonDriver::get_observation()
     CameraObservation image_frame;
     Pylon::CGrabResultPtr ptr_grab_result;
 
-    // FIXME 5second timeout?
-    camera_.RetrieveResult(
-        5000, ptr_grab_result, Pylon::TimeoutHandling_ThrowException);
-    auto current_time = std::chrono::system_clock::now();
-    image_frame.timestamp =
-        std::chrono::duration<double>(current_time.time_since_epoch()).count();
-
-    if (ptr_grab_result->GrabSucceeded())
+    try
     {
-        // ensure that the actual image size matches with the expected one
-        if (ptr_grab_result->GetHeight() / 2 != image_frame.height ||
-            ptr_grab_result->GetWidth() / 2 != image_frame.width)
+        // FIXME 5second timeout?
+        camera_.RetrieveResult(
+            5000, ptr_grab_result, Pylon::TimeoutHandling_ThrowException);
+        auto current_time = std::chrono::system_clock::now();
+        image_frame.timestamp =
+            std::chrono::duration<double>(current_time.time_since_epoch())
+                .count();
+
+        if (ptr_grab_result->GrabSucceeded())
         {
-            std::stringstream msg;
-            msg << device_user_id_ << ": "
-                << "Size of grabbed frame (" << ptr_grab_result->GetWidth()
-                << "x" << ptr_grab_result->GetHeight()
-                << ") does not match expected size (" << image_frame.width * 2
-                << "x" << image_frame.height * 2 << ").";
+            // ensure that the actual image size matches with the expected one
+            if (ptr_grab_result->GetHeight() / 2 != image_frame.height ||
+                ptr_grab_result->GetWidth() / 2 != image_frame.width)
+            {
+                std::stringstream msg;
+                msg << device_user_id_ << ": "
+                    << "Size of grabbed frame (" << ptr_grab_result->GetWidth()
+                    << "x" << ptr_grab_result->GetHeight()
+                    << ") does not match expected size ("
+                    << image_frame.width * 2 << "x" << image_frame.height * 2
+                    << ").";
 
-            throw std::length_error(msg.str());
-        }
+                throw std::length_error(msg.str());
+            }
 
-        if (downsample_images_)
-        {
-            Pylon::CPylonImage pylon_image_bgr;
-            format_converter_.Convert(pylon_image_bgr, ptr_grab_result);
+            if (downsample_images_)
+            {
+                Pylon::CPylonImage pylon_image_bgr;
+                format_converter_.Convert(pylon_image_bgr, ptr_grab_result);
 
-            // NOTE: the cv::Mat points to the memory of pylon_image_bgr!
-            cv::Mat image_bgr = cv::Mat(ptr_grab_result->GetHeight(),
+                // NOTE: the cv::Mat points to the memory of pylon_image_bgr!
+                cv::Mat image_bgr =
+                    cv::Mat(ptr_grab_result->GetHeight(),
+                            ptr_grab_result->GetWidth(),
+                            CV_8UC3,
+                            (uint8_t*)pylon_image_bgr.GetBuffer());
+
+                // remove a bit of noise
+                cv::medianBlur(image_bgr, image_bgr, 3);
+
+                // resize image
+                constexpr float DOWNSAMPLING_FACTOR = 0.5;
+                cv::resize(image_bgr,
+                           image_bgr,
+                           cv::Size(),
+                           DOWNSAMPLING_FACTOR,
+                           DOWNSAMPLING_FACTOR,
+                           CV_INTER_LINEAR);
+
+                // convert back to BayerBG to not break the API
+                image_frame.image = BGR2BayerBG(image_bgr);
+            }
+            else
+            {
+                // NOTE: the cv::Mat points to the memory of pylon_image!
+                cv::Mat image = cv::Mat(ptr_grab_result->GetHeight(),
                                         ptr_grab_result->GetWidth(),
-                                        CV_8UC3,
-                                        (uint8_t*)pylon_image_bgr.GetBuffer());
+                                        CV_8UC1,
+                                        (uint8_t*)ptr_grab_result->GetBuffer());
 
-            // remove a bit of noise
-            cv::medianBlur(image_bgr, image_bgr, 3);
-
-            // resize image
-            constexpr float DOWNSAMPLING_FACTOR = 0.5;
-            cv::resize(image_bgr,
-                       image_bgr,
-                       cv::Size(),
-                       DOWNSAMPLING_FACTOR,
-                       DOWNSAMPLING_FACTOR,
-                       CV_INTER_LINEAR);
-
-            // convert back to BayerBG to not break the API
-            image_frame.image = BGR2BayerBG(image_bgr);
+                image_frame.image = image.clone();
+            }
         }
         else
         {
-            // NOTE: the cv::Mat points to the memory of pylon_image!
-            cv::Mat image = cv::Mat(ptr_grab_result->GetHeight(),
-                                    ptr_grab_result->GetWidth(),
-                                    CV_8UC1,
-                                    (uint8_t*)ptr_grab_result->GetBuffer());
-
-            image_frame.image = image.clone();
+            throw std::runtime_error("Failed to grab image from camera " +
+                                     device_user_id_ + ".");
         }
     }
-    else
+    catch (const Pylon::GenericException& e)
     {
-        throw std::runtime_error("Failed to access images from camera " +
-                                 device_user_id_ + ".");
+        // convert Pylon exceptions to an std exception, so it is understood by
+        // pybind11
+        throw std::runtime_error("Camera Error (" + device_user_id_ +
+                                 "): " + e.what());
     }
 
     return image_frame;
