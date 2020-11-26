@@ -12,6 +12,7 @@ find_package(ament_cmake REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(mpi_cmake_modules REQUIRED)
 find_package(pybind11 REQUIRED)
+find_package(pybind11_opencv REQUIRED)
 find_package(cereal REQUIRED)
 find_package(robot_interfaces REQUIRED)
 find_package(serialization_utils REQUIRED)
@@ -113,6 +114,7 @@ target_link_libraries(pybullet_tricamera_driver
     camera_observations
     serialization_utils::serialization_utils
     robot_interfaces::robot_interfaces
+    pybind11_opencv::pybind11_opencv
 )
 
 
@@ -142,6 +144,7 @@ ament_target_dependencies(load_camera_config_test sensor_msgs)
 # Python Bindings
 add_pybind11_module(py_camera_types srcpy/py_camera_types.cpp
     LINK_LIBRARIES
+        pybind11_opencv::pybind11_opencv
         camera_observations
         opencv_driver
         ${pylon_driver}

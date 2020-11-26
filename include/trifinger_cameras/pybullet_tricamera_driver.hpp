@@ -34,8 +34,6 @@ private:
 
     //! @brief The numpy module.
     pybind11::module numpy_;
-    //! @brief Python class that wraps cv::Mat (used for conversion).
-    pybind11::object cvMat_;
 };
 
 }  // namespace trifinger_cameras
