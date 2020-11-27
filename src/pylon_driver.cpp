@@ -9,7 +9,7 @@
 #include <chrono>
 #include <iostream>
 
-#include <ros/package.h>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 #include <opencv2/opencv.hpp>
 
 namespace trifinger_cameras
@@ -248,8 +248,10 @@ cv::Mat PylonDriver::downsample_raw_image(const cv::Mat& image)
 
 void PylonDriver::set_camera_configuration(GenApi::INodeMap& nodemap)
 {
-    const std::string filename = ros::package::getPath("trifinger_cameras") +
-                                 "/config/pylon_camera_settings.txt";
+    const std::string filename =
+        ament_index_cpp::get_package_share_directory("trifinger_cameras") +
+        "/config/pylon_camera_settings.txt";
+
     Pylon::CFeaturePersistence::Load(
         filename.c_str(), &camera_.GetNodeMap(), true);
 

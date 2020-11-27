@@ -11,7 +11,7 @@ import numpy as np
 import cv2
 
 import rospy
-import rospkg
+from ament_index_python.packages import get_package_share_directory
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
@@ -54,7 +54,7 @@ class CharucoBoardPosePublisher:
 
         # call the script to detect the board
         script_path = os.path.join(
-            rospkg.RosPack().get_path("trifinger_cameras"),
+            get_package_share_directory("trifinger_cameras"),
             "scripts",
             "charuco_board.py")
         pose_json = subprocess.check_output([script_path,
