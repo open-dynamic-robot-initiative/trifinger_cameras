@@ -178,22 +178,22 @@ install(
     RUNTIME DESTINATION bin
 )
 
-install(
-    PROGRAMS
-        scripts/analyze_tricamera_log.py
-        scripts/calibrate_cameras.py
-        scripts/calibrate_trifingerpro_cameras.py
-        scripts/camera_log_viewer.py
-        scripts/charuco_board.py
-        scripts/convert_to_camera_pose.py
-        scripts/detect_aruco_marker.py
-        scripts/overlay_camera_stream.py
-        scripts/record_image_dataset.py
-        scripts/rodrigues_to_quaternion.py
-        scripts/tricamera_log_converter.py
-        scripts/tricamera_log_viewer.py
-        scripts/tricamera_test_connection.py
-        scripts/verify_calibration.py
+install_scripts(
+    scripts/analyze_tricamera_log.py
+    scripts/calibrate_cameras.py
+    scripts/calibrate_trifingerpro_cameras.py
+    scripts/camera_log_viewer.py
+    scripts/charuco_board.py
+    scripts/convert_to_camera_pose.py
+    scripts/detect_aruco_marker.py
+    scripts/overlay_camera_stream.py
+    scripts/record_image_dataset.py
+    scripts/rodrigues_to_quaternion.py
+    scripts/tricamera_log_converter.py
+    scripts/tricamera_log_viewer.py
+    scripts/tricamera_test_connection.py
+    scripts/verify_calibration.py
+
     DESTINATION lib/${PROJECT_NAME}
 )
 
