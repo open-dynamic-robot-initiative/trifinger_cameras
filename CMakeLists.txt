@@ -188,7 +188,6 @@ install_scripts(
     scripts/detect_aruco_marker.py
     scripts/overlay_camera_stream.py
     scripts/record_image_dataset.py
-    scripts/rodrigues_to_quaternion.py
     scripts/tricamera_log_converter.py
     scripts/tricamera_log_viewer.py
     scripts/tricamera_test_connection.py
@@ -201,6 +200,11 @@ install_scripts(
 # Tests
 if (BUILD_TESTING)
     find_package(ament_cmake_gtest REQUIRED)
+    find_package(ament_cmake_nose REQUIRED)
+
+    # install files that are used by the tests
+    install(FILES tests/camera_calib.yml
+            DESTINATION share/${PROJECT_NAME}/tests)
 
     ament_add_gtest(test_camera_observation tests/test_camera_observation.cpp)
     target_link_libraries(test_camera_observation
@@ -215,6 +219,10 @@ if (BUILD_TESTING)
         robot_interfaces::robot_interfaces
         camera_observations
     )
+
+    ament_add_nose_test(test_utils tests/test_utils.py)
+    ament_add_nose_test(test_camera_calibration_file
+        tests/test_camera_calibration_file.py)
 endif()
 
 

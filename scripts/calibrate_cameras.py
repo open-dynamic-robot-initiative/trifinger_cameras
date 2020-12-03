@@ -325,8 +325,7 @@ def calibrate_mean_extrinsic_parameters(
                 * 0.1
             )
 
-            world_origin_points = utils.rot_points(xMat, world_origin_points)
-            world_origin_points = utils.rot_points(zMat, world_origin_points)
+            world_origin_points = (zMat @ xMat @ world_origin_points.T).T
             world_origin_points = world_origin_points + Tvec
 
             # cube

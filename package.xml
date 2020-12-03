@@ -24,17 +24,15 @@
     <depend>yaml_utils</depend>
     <depend>sensor_msgs</depend>
 
-    <exec_depend>rospy</exec_depend>
-    <exec_depend>ament_index_python</exec_depend>
-    <exec_depend>geometry_msgs</exec_depend>
-    <exec_depend>cv_bridge</exec_depend>
     <exec_depend>tf</exec_depend>
 
     <exec_depend>python-numpy</exec_depend>
+    <exec_depend>python-scipy</exec_depend>
     <exec_depend>python-opencv</exec_depend>
 
     <test_depend>ament_cmake_gtest</test_depend>
-    <test_depend>rosunit</test_depend>
+    <test_depend>ament_cmake_nose</test_depend>
+    <test_depend>ament_index_python</test_depend>
 
     <export>
         <build_type>ament_cmake</build_type>
