@@ -231,8 +231,7 @@ def calibrate_mean_extrinsic_parameters(
                 * 0.1
             )
 
-            world_origin_points = utils.rot_points(xMat, world_origin_points)
-            world_origin_points = utils.rot_points(zMat, world_origin_points)
+            world_origin_points = (zMat @ xMat @ world_origin_points.T).T
             world_origin_points = world_origin_points + Tvec
 
             # cube
@@ -287,8 +286,8 @@ def calibrate_mean_extrinsic_parameters(
             for p1, p2 in point_pairs:
                 cv2.line(
                     img,
-                    tuple(imgpoints[p1, 0]),
-                    tuple(imgpoints[p2, 0]),
+                    tuple(imgpoints[p1, 0].astype(int)),
+                    tuple(imgpoints[p2, 0].astype(int)),
                     [200, 200, 0],
                     thickness=2,
                 )
