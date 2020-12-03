@@ -32,27 +32,6 @@ def rodrigues_to_matrix(rvec):
     return rotation_matrix
 
 
-def rodrigues_to_quaternion(rvec):
-    """Convert Rodrigues vector to quaternion
-
-    Args:
-        rvec (array-like):  Rotation in Rodrigues format as returned by OpenCV.
-
-    Returns:
-        quaternion (array-like):  Given rotation as a quaternion `[x, y, z, w]`
-    """
-    # this import is moved due to versions differences in python2 (ros)
-    # and python3 (opencv)
-    import tf
-
-    rvec = np.asarray(rvec)
-
-    rotation_matrix = rodrigues_to_matrix(rvec)
-    quaternion = tf.transformations.quaternion_from_matrix(rotation_matrix)
-
-    return quaternion
-
-
 def convert_image(raw_image, format: str = "bgr") -> np.ndarray:
     """Convert raw image from camera observation.
 

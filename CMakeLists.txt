@@ -188,7 +188,6 @@ install_scripts(
     scripts/detect_aruco_marker.py
     scripts/overlay_camera_stream.py
     scripts/record_image_dataset.py
-    scripts/rodrigues_to_quaternion.py
     scripts/tricamera_log_converter.py
     scripts/tricamera_log_viewer.py
     scripts/tricamera_test_connection.py
