@@ -1,15 +1,13 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 """
 Takes as input the pose of a detected marker and returns the pose of the camera
 relative to the marker in a format that can be used by TF.
 """
 import argparse
 import json
+
 import numpy as np
-
-import tf
-
-from trifinger_cameras import utils
+from scipy.spatial.transform import Rotation
 
 
 def main():
@@ -23,7 +21,8 @@ def main():
     tvec = np.asarray(marker_pose["tvec"])
 
     # Construct homogeneous transformation matrix based on rvec and tvec
-    mat = utils.rodrigues_to_matrix(rvec)
+    mat = np.identity(4)
+    mat[:3, :3] = Rotation.from_rotvec(rvec).as_matrix()
     mat[:3, 3] = tvec.flatten()
 
     # What we get as input is "camera -> marker".  We want it the other way
@@ -32,8 +31,8 @@ def main():
 
     # Output as "x y z qx qy qz qw", the format that is used by tf's
     # static_transform_publisher.
-    camera_translation = tf.transformations.translation_from_matrix(invmat)
-    camera_quaternion = tf.transformations.quaternion_from_matrix(invmat)
+    camera_translation = invmat[:3, 3]
+    camera_quaternion = Rotation.from_matrix(invmat[:3, :3]).as_quat()
     print(
         ("{:.4f} " * 7).format(
             camera_translation[0],
