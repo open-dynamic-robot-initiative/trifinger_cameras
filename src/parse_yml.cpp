@@ -35,9 +35,7 @@
 
 #include <trifinger_cameras/parse_yml.h>
 
-#include <sensor_msgs/distortion_models.h>
 #include <yaml-cpp/yaml.h>
-#include <boost/filesystem.hpp>
 #include <cassert>
 #include <cstring>
 #include <ctime>
