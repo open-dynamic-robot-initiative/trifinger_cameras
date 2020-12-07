@@ -9,7 +9,6 @@
  * https://github.com/basler/pylon-ros-camera/blob/9f3832127fc39a2c181cbeb5257054352e2ef7fe/pylon_camera/src/pylon_camera/pylon_camera.cpp#L132
  *
  */
-
 #pragma once
 
 #ifndef Pylon_FOUND
@@ -65,7 +64,7 @@ private:
     Pylon::CInstantCamera camera_;
     Pylon::CImageFormatConverter format_converter_;
 
-    void set_camera_configuration(GenApi::INodeMap& nodemap);
+    void set_camera_configuration();
 };
 
 }  // namespace trifinger_cameras

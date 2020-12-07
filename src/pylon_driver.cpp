@@ -111,7 +111,7 @@ PylonDriver::PylonDriver(const std::string& device_user_id,
             camera_.Open();
             camera_.MaxNumBuffer = 5;
 
-            set_camera_configuration(camera_.GetNodeMap());
+            set_camera_configuration();
 
             camera_.StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
         }
@@ -246,7 +246,7 @@ cv::Mat PylonDriver::downsample_raw_image(const cv::Mat& image)
     return downsampled;
 }
 
-void PylonDriver::set_camera_configuration(GenApi::INodeMap& nodemap)
+void PylonDriver::set_camera_configuration()
 {
     const std::string filename =
         ament_index_cpp::get_package_share_directory("trifinger_cameras") +
