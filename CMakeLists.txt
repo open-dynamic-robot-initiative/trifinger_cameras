@@ -202,6 +202,15 @@ install_scripts(
     DESTINATION lib/${PROJECT_NAME}
 )
 
+install(
+    PROGRAMS
+        demos/demo_camera.py
+        demos/demo_tricamera.py
+
+    DESTINATION lib/${PROJECT_NAME}
+)
+
+
 
 # Tests
 if (BUILD_TESTING)
