@@ -116,6 +116,9 @@ target_link_libraries(pybullet_tricamera_driver
     robot_interfaces::robot_interfaces
     pybind11_opencv::pybind11_opencv
 )
+# using pybind11 types, therefore visibility needs to be hidden
+set_target_properties(pybullet_tricamera_driver
+    PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 
 add_library(camera_calibration_parser
