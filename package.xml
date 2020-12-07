@@ -18,6 +18,7 @@
 
     <depend>ament_index_cpp</depend>
     <depend>pybind11</depend>
+    <depend>pybind11_opencv</depend>
     <depend>libcereal-dev</depend>
     <depend>robot_interfaces</depend>
     <depend>serialization_utils</depend>

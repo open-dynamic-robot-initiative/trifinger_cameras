@@ -4,10 +4,11 @@
  * @copyright 2020, Max Planck Gesellschaft. All rights reserved.
  * @license BSD 3-clause
  */
+#include <pybind11/pybind11.h>
+#include <pybind11_opencv/cvbind.hpp>
 
 #include <trifinger_cameras/camera_observation.hpp>
 #include <trifinger_cameras/opencv_driver.hpp>
-#include <trifinger_cameras/pybind_opencv.hpp>
 #ifdef Pylon_FOUND
 #include <trifinger_cameras/pylon_driver.hpp>
 #endif
@@ -20,7 +21,6 @@ using namespace trifinger_cameras;
 PYBIND11_MODULE(py_camera_types, m)
 {
     create_sensor_bindings<CameraObservation>(m);
-    pybind_cvmat(m);
 
     pybind11::class_<OpenCVDriver,
                      std::shared_ptr<OpenCVDriver>,

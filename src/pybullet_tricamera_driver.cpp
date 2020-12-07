@@ -9,6 +9,7 @@
 #include <chrono>
 #include <thread>
 
+#include <pybind11_opencv/cvbind.hpp>
 #include <serialization_utils/cereal_cvmat.hpp>
 
 namespace py = pybind11;
@@ -28,9 +29,6 @@ PyBulletTriCameraDriver::PyBulletTriCameraDriver()
     // some imports that are needed later for converting images (numpy array ->
     // cv::Mat)
     numpy_ = py::module::import("numpy");
-    py::module camera_types =
-        py::module::import("trifinger_cameras.py_camera_types");
-    cvMat_ = camera_types.attr("cvMat");
 
     // TriFingerCameras gives access to the cameras in simulation
     py::module mod_camera = py::module::import("trifinger_simulation.camera");
@@ -54,7 +52,6 @@ PyBulletTriCameraDriver::get_observation()
             // conversion to cv::Mat would fail
             auto image = numpy_.attr("ascontiguousarray")(images[i]);
             // convert to cv::Mat
-            image = cvMat_(image);
             tricam_obs.cameras[i].image = image.cast<cv::Mat>();
         }
     }
