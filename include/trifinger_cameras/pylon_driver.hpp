@@ -15,7 +15,11 @@
 #error Cannot use PylonDriver without Pylon.
 #endif
 
+// ignore warnings in the pylon headers
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 #include <pylon/PylonIncludes.h>
+#pragma GCC diagnostic pop
 
 #include <robot_interfaces/sensors/sensor_driver.hpp>
 #include <trifinger_cameras/camera_observation.hpp>
