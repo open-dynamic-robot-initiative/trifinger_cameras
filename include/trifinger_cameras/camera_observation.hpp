@@ -25,10 +25,9 @@ struct CameraObservation
     cv::Mat image;
     double timestamp;
 
-    CameraObservation():
-        image(height, width, CV_8UC1),
-        timestamp(0)
-    {}
+    CameraObservation() : image(height, width, CV_8UC1), timestamp(0)
+    {
+    }
 
     template <class Archive>
     void serialize(Archive& archive)

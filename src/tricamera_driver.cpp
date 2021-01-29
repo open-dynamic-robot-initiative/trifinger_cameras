@@ -40,4 +40,3 @@ TriCameraObservation TriCameraDriver::get_observation()
 }
 
 }  // namespace trifinger_cameras
-

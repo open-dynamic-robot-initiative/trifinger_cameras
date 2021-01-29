@@ -4,7 +4,9 @@ import cv2
 
 def main():
     # ArUco stuff
-    marker_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_APRILTAG_16h5)
+    marker_dict = cv2.aruco.getPredefinedDictionary(
+        cv2.aruco.DICT_APRILTAG_16h5
+    )
 
     cap = cv2.VideoCapture(0)
     while True:

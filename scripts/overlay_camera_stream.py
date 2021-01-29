@@ -31,7 +31,8 @@ def main():
 
     camera_data = trifinger_cameras.camera.SingleProcessData()
     camera_driver = trifinger_cameras.camera.PylonDriver(
-        args.camera_id, downsample_images=False)
+        args.camera_id, downsample_images=False
+    )
     camera_backend = trifinger_cameras.camera.Backend(  # noqa
         camera_driver, camera_data
     )

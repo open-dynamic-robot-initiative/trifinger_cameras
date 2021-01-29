@@ -26,9 +26,15 @@ sys.path.append(ros_path)
 class CharucoBoardHandler:
     """Provides different actions using a Charuco Board."""
 
-    def __init__(self, size_x: int, size_y: int, square_size: float, marker_size:
-                 float, camera_matrix=None, dist_coeffs=None,
-                 ):
+    def __init__(
+        self,
+        size_x: int,
+        size_y: int,
+        square_size: float,
+        marker_size: float,
+        camera_matrix=None,
+        dist_coeffs=None,
+    ):
         """Initialize board with hard-coded parameters."""
         # use AprilTag 16h5 which contains 30 4x4 markers
         self.marker_dict = cv2.aruco.getPredefinedDictionary(

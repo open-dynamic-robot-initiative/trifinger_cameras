@@ -37,4 +37,3 @@ private:
 };
 
 }  // namespace trifinger_cameras
-
