@@ -64,4 +64,3 @@ PyBulletTriCameraDriver::get_observation()
 }
 
 }  // namespace trifinger_cameras
-

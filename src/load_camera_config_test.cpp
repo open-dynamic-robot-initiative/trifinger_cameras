@@ -4,7 +4,6 @@
 #include <trifinger_cameras/parse_yml.h>
 #include <sensor_msgs/msg/camera_info.hpp>
 
-
 int main(int argc, char* argv[])
 {
     if (argc < 2)

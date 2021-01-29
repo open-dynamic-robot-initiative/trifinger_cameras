@@ -7,5 +7,4 @@
  */
 #include <trifinger_cameras/tricamera_observation.hpp>
 
-
 // nothing here, the file is just needed to compile the library

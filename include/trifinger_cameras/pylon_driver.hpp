@@ -52,7 +52,7 @@ public:
      *
      * @return Downsampled image.
      */
-    static cv::Mat downsample_raw_image(const cv::Mat &image);
+    static cv::Mat downsample_raw_image(const cv::Mat& image);
 
     /**
      * @brief Get the latest observation (image frame + timestamp of when the

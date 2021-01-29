@@ -52,9 +52,7 @@ def main():
     while True:
         observation = camera_frontend.get_latest_observation()
         for i, name in enumerate(camera_names):
-            cv2.imshow(
-                name, utils.convert_image(observation.cameras[i].image)
-            )
+            cv2.imshow(name, utils.convert_image(observation.cameras[i].image))
 
         # stop if either "q" or ESC is pressed
         if cv2.waitKey(3) in [ord("q"), 27]:  # 27 = ESC

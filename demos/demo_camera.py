@@ -31,7 +31,7 @@ def main():
     argparser.add_argument(
         "--record",
         type=str,
-        help="""Path to file in which camera data is recorded."""
+        help="""Path to file in which camera data is recorded.""",
     )
 
     args = argparser.parse_args()
