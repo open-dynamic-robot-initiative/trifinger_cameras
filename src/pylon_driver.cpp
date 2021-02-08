@@ -187,7 +187,7 @@ CameraObservation PylonDriver::get_observation()
                            cv::Size(),
                            DOWNSAMPLING_FACTOR,
                            DOWNSAMPLING_FACTOR,
-                           CV_INTER_LINEAR);
+                           cv::INTER_LINEAR);
 
                 // convert back to BayerBG to not break the API
                 image_frame.image = BGR2BayerBG(image_bgr);
