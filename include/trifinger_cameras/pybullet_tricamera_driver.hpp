@@ -8,6 +8,7 @@
 
 #include <pybind11/embed.h>
 
+#include <robot_interfaces/finger_types.hpp>
 #include <robot_interfaces/sensors/sensor_driver.hpp>
 #include <trifinger_cameras/tricamera_observation.hpp>
 
@@ -20,7 +21,9 @@ class PyBulletTriCameraDriver : public robot_interfaces::SensorDriver<
                                     trifinger_cameras::TriCameraObservation>
 {
 public:
-    PyBulletTriCameraDriver();
+    PyBulletTriCameraDriver(
+        robot_interfaces::TriFingerTypes::BaseDataPtr robot_data,
+        bool render_images = true);
 
     /**
      * @brief Get the latest observation from the three cameras
@@ -34,6 +37,16 @@ private:
 
     //! @brief The numpy module.
     pybind11::module numpy_;
+
+    //! @brief If false, no images are rendered.  Images in observations will be
+    //!        uninitialised.
+    bool render_images_;
+
+    //! @brief Pointer to robot data, needed for time synchronisation.
+    robot_interfaces::TriFingerTypes::BaseDataPtr robot_data_;
+    //! @brief Last robot time index at which a camera observation was returned.
+    //         Needed for time synchronisation.
+    time_series::Index last_update_robot_time_index_;
 };
 
 }  // namespace trifinger_cameras
