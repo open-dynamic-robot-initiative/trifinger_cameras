@@ -36,9 +36,15 @@ PYBIND11_MODULE(py_tricamera_types, m)
         .def("get_observation", &TriCameraDriver::get_observation);
 #endif
 
-    pybind11::class_<TriCameraObservation>(m, "TriCameraObservation")
+    pybind11::class_<TriCameraObservation>(
+        m, "TriCameraObservation", "Observation from the three cameras.")
         .def(pybind11::init<>())
-        .def_readwrite("cameras", &TriCameraObservation::cameras);
+        .def_readwrite(
+            "cameras",
+            &TriCameraObservation::cameras,
+            "List[~trifinger_cameras.camera.CameraObservation]: List of "
+            "observations from cameras 'camera60', 'camera180' and 'camera300' "
+            "(in this order)");
 
     pybind11::class_<PyBulletTriCameraDriver,
                      std::shared_ptr<PyBulletTriCameraDriver>,
