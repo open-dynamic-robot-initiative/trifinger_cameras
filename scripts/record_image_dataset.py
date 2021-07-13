@@ -100,9 +100,9 @@ def main():
         """,
     )
     argparser.add_argument(
-        "--no-downsample",
+        "--downsample",
         action="store_true",
-        help="""Do not downsample images.  Only for Pylon cameras.""",
+        help="""Downsample images by factor 2.  Only for Pylon cameras.""",
     )
     args = argparser.parse_args()
 
@@ -113,13 +113,13 @@ def main():
     if args.driver == "tri":
         camera_names = ["camera60", "camera180", "camera300"]
         camera_driver = trifinger_cameras.tricamera.TriCameraDriver(
-            *camera_names, not args.no_downsample
+            *camera_names, args.downsample
         )
         camera_module = trifinger_cameras.tricamera
         image_saver = TriImageSaver(args.outdir, camera_names)
     elif args.driver == "pylon":
         camera_driver = trifinger_cameras.camera.PylonDriver(
-            args.camera_id, not args.no_downsample
+            args.camera_id, args.downsample
         )
         camera_module = trifinger_cameras.camera
         image_saver = SingleImageSaver(args.outdir, args.camera_id)
@@ -131,7 +131,7 @@ def main():
         image_saver = SingleImageSaver(args.outdir, args.camera_id)
 
     camera_data = camera_module.SingleProcessData()
-    camera_backend = camera_module.Backend(camera_driver, camera_data)  # noqa
+    camera_backend = camera_module.Backend(camera_driver, camera_data)
     camera_frontend = camera_module.Frontend(camera_data)
 
     while True:
@@ -162,6 +162,8 @@ def main():
 
         observation = camera_frontend.get_latest_observation()
         image_saver.save(observation)
+
+    camera_backend.shutdown()
 
 
 if __name__ == "__main__":
