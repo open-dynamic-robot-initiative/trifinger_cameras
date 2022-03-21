@@ -32,7 +32,10 @@ endif()
 ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR python/${PROJECT_NAME})
 
 
-ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+
+
+set(install_targets "")
 
 
 # Libraries
@@ -48,6 +51,7 @@ target_link_libraries(camera_observations
     ${OpenCV_LIBRARIES}
     serialization_utils::serialization_utils
 )
+list(APPEND install_targets camera_observations)
 
 
 add_library(opencv_driver src/opencv_driver.cpp)
@@ -61,6 +65,7 @@ target_link_libraries(opencv_driver
     robot_interfaces::robot_interfaces
     camera_observations
 )
+list(APPEND install_targets opencv_driver)
 
 
 if (${Pylon_FOUND})
@@ -80,6 +85,7 @@ if (${Pylon_FOUND})
     ament_target_dependencies(pylon_driver
         ament_index_cpp
     )
+    list(APPEND install_targets pylon_driver)
 
 
     add_library(tricamera_driver src/tricamera_driver.cpp)
@@ -95,6 +101,17 @@ if (${Pylon_FOUND})
         robot_interfaces::robot_interfaces
         pylon_driver
     )
+    list(APPEND install_targets tricamera_driver)
+
+
+    add_executable(pylon_list_cameras src/pylon_list_cameras.cpp)
+    target_include_directories(pylon_list_cameras PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+        ${Pylon_INCLUDE_DIRS}
+    )
+    target_link_libraries(pylon_list_cameras ${Pylon_LIBRARIES})
+    list(APPEND install_targets pylon_list_cameras)
 
 
     # Set library names to variables, so we can use the variable instead of the
@@ -119,6 +136,7 @@ target_link_libraries(pybullet_tricamera_driver
 # using pybind11 types, therefore visibility needs to be hidden
 set_target_properties(pybullet_tricamera_driver
     PROPERTIES CXX_VISIBILITY_PRESET hidden)
+list(APPEND install_targets pybullet_tricamera_driver)
 
 
 add_library(camera_calibration_parser
@@ -133,6 +151,7 @@ target_link_libraries(camera_calibration_parser yaml_utils::yaml_utils)
 ament_target_dependencies(camera_calibration_parser
     sensor_msgs
 )
+list(APPEND install_targets camera_calibration_parser)
 
 
 add_executable(load_camera_config_test src/load_camera_config_test.cpp)
@@ -142,6 +161,7 @@ target_include_directories(load_camera_config_test PUBLIC
 )
 target_link_libraries(load_camera_config_test camera_calibration_parser)
 ament_target_dependencies(load_camera_config_test sensor_msgs)
+list(APPEND install_targets load_camera_config_test)
 
 
 # Python Bindings
@@ -171,17 +191,11 @@ install(FILES cmake/FindPylon.cmake
         DESTINATION share/${PROJECT_NAME}/cmake)
 
 install(
-    TARGETS
-        ${pylon_driver}
-        ${tricamera_driver}
-        camera_calibration_parser
-        camera_observations
-        opencv_driver
-        pybullet_tricamera_driver
+    TARGETS ${install_targets}
     EXPORT export_${PROJECT_NAME}
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
+    RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
 install_scripts(
