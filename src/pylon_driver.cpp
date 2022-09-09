@@ -9,6 +9,8 @@
 #include <chrono>
 #include <iostream>
 
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 #include <ament_index_cpp/get_package_share_directory.hpp>
 #include <opencv2/opencv.hpp>
 
@@ -57,12 +59,19 @@ PylonDriver::PylonDriver(const std::string& device_user_id,
                          bool downsample_images)
     : device_user_id_(device_user_id), downsample_images_(downsample_images)
 {
+    auto logger = spdlog::stderr_color_mt("PylonDriver");
+
+    logger->info("Open Pylon camera {}", device_user_id);
+
     try
     {
+        logger->debug("Create Pylon::CTlFactory");
         Pylon::CTlFactory& tl_factory = Pylon::CTlFactory::GetInstance();
+        logger->debug("PylonInitialize");
         Pylon::PylonInitialize();
         Pylon::DeviceInfoList_t device_list;
 
+        logger->debug("Check devices.");
         if (tl_factory.EnumerateDevices(device_list) == 0)
         {
             Pylon::PylonTerminate();
@@ -74,9 +83,10 @@ PylonDriver::PylonDriver(const std::string& device_user_id,
         {
             device_iterator = device_list.begin();
             camera_.Attach(tl_factory.CreateDevice(*device_iterator));
-            std::cout << "No device ID specified. Creating a camera object "
-                         "with the first device id in the device list."
-                      << std::endl;
+            logger->warn(
+                "No device ID specified. Creating a camera object "
+                "with the first device in the device list ({}).",
+                device_iterator->GetUserDefinedName());
         }
         else
         {
@@ -90,6 +100,7 @@ PylonDriver::PylonDriver(const std::string& device_user_id,
                     device_iterator->GetUserDefinedName());
                 if (device_user_id == device_user_id_found)
                 {
+                    logger->debug("Found Pylon camera {}", device_user_id);
                     found_desired_device = true;
                     break;
                 }
@@ -97,6 +108,7 @@ PylonDriver::PylonDriver(const std::string& device_user_id,
 
             if (found_desired_device)
             {
+                logger->debug("Create device");
                 camera_.Attach(tl_factory.CreateDevice(*device_iterator));
             }
             else
@@ -108,11 +120,14 @@ PylonDriver::PylonDriver(const std::string& device_user_id,
                     "connected devices, please retry with a valid id.");
             }
 
+            logger->debug("Open camera");
             camera_.Open();
             camera_.MaxNumBuffer = 5;
 
+            logger->debug("Configure camera");
             set_camera_configuration();
 
+            logger->info("Start grabbing images");
             camera_.StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
         }
 
@@ -129,6 +144,7 @@ PylonDriver::PylonDriver(const std::string& device_user_id,
 
 PylonDriver::~PylonDriver()
 {
+    spdlog::stderr_color_mt("PylonDriver")->info("Disconnect camera.");
     camera_.StopGrabbing();
     Pylon::PylonTerminate();
 }
