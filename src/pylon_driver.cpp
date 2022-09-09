@@ -59,7 +59,8 @@ PylonDriver::PylonDriver(const std::string& device_user_id,
                          bool downsample_images)
     : device_user_id_(device_user_id), downsample_images_(downsample_images)
 {
-    auto logger = spdlog::stderr_color_mt("PylonDriver");
+    auto logger = spdlog::stderr_color_mt("PylonDriver-" + device_user_id);
+    logger->set_level(spdlog::level::debug);
 
     logger->info("Open Pylon camera {}", device_user_id);
 
@@ -140,11 +141,11 @@ PylonDriver::PylonDriver(const std::string& device_user_id,
         throw std::runtime_error("Camera Error (" + device_user_id_ +
                                  "): " + e.what());
     }
+    logger->debug("Initialisation finished.");
 }
 
 PylonDriver::~PylonDriver()
 {
-    spdlog::stderr_color_mt("PylonDriver")->info("Disconnect camera.");
     camera_.StopGrabbing();
     Pylon::PylonTerminate();
 }
