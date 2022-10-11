@@ -1,6 +1,11 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+- Script overlay_real_and_rendered_images.py for verifying camera calibration.
+
+### Removed
+- Obsolete script `verify_calibration.py`
 
 ## [1.0.0] - 2022-06-28
 ### Added
