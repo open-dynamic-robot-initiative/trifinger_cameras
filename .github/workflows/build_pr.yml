@@ -22,6 +22,11 @@ jobs:
 
       - name: Setup Apptainer
         uses: open-dynamic-robot-initiative/trifinger-build-action/setup_apptainer@v1
+        with:
+          # use the "robot" image (which contains Pylon) but rename to "user" so
+          # following steps can work with default values
+          uri: oras://ghcr.io/open-dynamic-robot-initiative/trifinger_singularity/trifinger_robot:latest
+          output_file: trifinger_user_latest.sif
 
       - name: Build
         uses: open-dynamic-robot-initiative/trifinger-build-action/build@v1
