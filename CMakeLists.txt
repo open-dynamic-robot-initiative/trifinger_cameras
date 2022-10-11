@@ -211,7 +211,6 @@ install_scripts(
     scripts/tricamera_log_converter.py
     scripts/tricamera_log_viewer.py
     scripts/tricamera_test_connection.py
-    scripts/verify_calibration.py
 
     DESTINATION lib/${PROJECT_NAME}
 )
