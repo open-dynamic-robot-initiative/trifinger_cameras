@@ -207,11 +207,11 @@ install_scripts(
     scripts/convert_to_camera_pose.py
     scripts/detect_aruco_marker.py
     scripts/overlay_camera_stream.py
+    scripts/overlay_real_and_rendered_images.py
     scripts/record_image_dataset.py
     scripts/tricamera_log_converter.py
     scripts/tricamera_log_viewer.py
     scripts/tricamera_test_connection.py
-    scripts/verify_calibration.py
 
     DESTINATION lib/${PROJECT_NAME}
 )
