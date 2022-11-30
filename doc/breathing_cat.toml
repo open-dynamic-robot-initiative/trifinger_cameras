@@ -1,0 +1,6 @@
+[mainpage]
+title = "TriFinger Cameras"
+auto_general_docs = false
+
+[intersphinx.mapping]
+robot_fingers = "https://open-dynamic-robot-initiative.github.io/robot_fingers"
