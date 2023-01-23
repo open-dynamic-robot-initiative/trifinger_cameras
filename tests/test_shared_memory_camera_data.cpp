@@ -15,7 +15,12 @@ TEST(TestSharedMemoryCameraData, serialization)
         "test_camera_data", true, 10);
     CameraObservation obs1, obs2;
 
-    obs1.image = (cv::Mat_<double>(3, 3) << 1, 2, 3, 4, 5, 6, 7, 8, 9);
+    obs1.image = cv::Mat::ones(
+        CameraObservation::height, CameraObservation::width, CV_8UC1);
+    // change a few bytes, so that its not just all ones
+    obs1.image.data[0] = 13;
+    obs1.image.data[4] = 42;
+    obs1.image.data[13] = 123;
     obs1.timestamp = 42.0;
 
     data.observation->append(obs1);
