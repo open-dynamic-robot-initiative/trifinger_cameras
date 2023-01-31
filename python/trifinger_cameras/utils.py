@@ -1,4 +1,6 @@
 """Utility functions."""
+import typing
+
 import cv2
 import numpy as np
 
@@ -45,3 +47,34 @@ def convert_image(raw_image, format: str = "bgr") -> np.ndarray:
         raise ValueError("Output format '%s' is not supported" % format)
 
     return image
+
+
+def check_image_sharpness(
+    image: np.ndarray,
+    canny_threshold1: float = 25.0,
+    canny_threshold2: float = 250.0,
+) -> typing.Tuple[float, np.ndarray]:
+    """Estimate sharpness of the given image, using edge detection.
+
+    Uses Canny edge detection to estimate how sharp the images are
+    (more edges = sharper).  If the mean value of the edge image is below a
+    certain threshold, this might mean that the corresponding camera is out of
+    focus and should be checked.
+
+    See https://stackoverflow.com/a/66557408
+
+    Args:
+        image: Input image.
+        canny_threshold1: See ``cv2.Canny``.
+        canny_threshold2: See ``cv2.Canny``.
+
+    Returns:
+        Tuple (edge_mean, edge_image).  Where edge_mean is the mean value of the edge
+        image.  A higher mean value means more edges and thus indicates a sharper image.
+        edge_image shows the detected edges.  It is returned mostly for debugging and
+        visualisation purposes.
+    """
+    edge_image = cv2.Canny(image, canny_threshold1, canny_threshold2)
+    edge_mean = np.mean(edge_image)
+
+    return edge_mean, edge_image
