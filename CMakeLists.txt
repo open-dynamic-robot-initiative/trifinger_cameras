@@ -204,6 +204,7 @@ install_scripts(
     scripts/calibrate_trifingerpro_cameras.py
     scripts/camera_log_viewer.py
     scripts/charuco_board.py
+    scripts/check_camera_sharpness.py
     scripts/convert_to_camera_pose.py
     scripts/detect_aruco_marker.py
     scripts/overlay_camera_stream.py

@@ -2,7 +2,11 @@
 
 ## [Unreleased]
 ### Added
-- Script overlay_real_and_rendered_images.py for verifying camera calibration.
+- Script `overlay_real_and_rendered_images.py` for verifying camera calibration.
+- Utility function `check_image_sharpness()` to evaluate how sharp an image is and a
+  script `check_camera_sharpness` to easily test different parameters on live camera
+  data.  This can be used, for example, to automatically detect if a camera is
+  significantly out of focus.
 
 ### Removed
 - Obsolete script `verify_calibration.py`
