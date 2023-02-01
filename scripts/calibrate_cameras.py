@@ -502,7 +502,6 @@ def main():
         )
 
     elif args.action == "extrinsic_mean":
-
         if (
             not args.calibration_data
             and not args.intrinsic_calibration_filename
