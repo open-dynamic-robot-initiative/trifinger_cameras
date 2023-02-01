@@ -128,7 +128,8 @@ def main():
 
     params = Params(args.canny[0], args.canny[1], args.threshold)
 
-    mean_buffer = deque([], maxlen=10 * args.buffer_size)
+    camera_fps = 10
+    mean_buffer = deque([], maxlen=camera_fps * args.buffer_size)
 
     window_name = f"Image Stream [{args.camera_id}]"
     cv2.namedWindow(window_name)
