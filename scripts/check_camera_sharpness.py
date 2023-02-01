@@ -90,9 +90,7 @@ def main():
     argparser.add_argument(
         "camera_id",
         type=str,
-        help="""ID of the camera that is used.  If --pylon is set this refers
-            to the DeviceUserId, otherwise it is the index of the device.
-        """,
+        help="""DeviceUserId of the camera that is used.""",
     )
     argparser.add_argument(
         "--canny",
