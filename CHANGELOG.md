@@ -11,6 +11,10 @@
 ### Removed
 - Obsolete script `verify_calibration.py`
 
+### Fixed
+- pybind11 build error on Ubuntu 22.04
+
+
 ## [1.0.0] - 2022-06-28
 ### Added
 - Executable `pylon_list_cameras` which lists all detected Pylon cameras.
