@@ -2,8 +2,8 @@
 Installation
 ************
 
-``trifinger_cameras`` is part of the ROBOT_FINGERS treep project. See
-:doc:`robot_fingers:doc/installation` in the documentation of ``robot_fingers``.
+The ``trifinger_cameras`` package is part of the TriFinger software bundle.  See
+:ref:`trifinger_docs:install_software` in the TriFinger documentation.
 
 Note that for using Pylon cameras, the Pylon SDK needs to be installed, which is
 an optional dependency.  See :doc:`pylon`.
