@@ -17,17 +17,48 @@ Install Pylon SDK
 
        sudo tar -C /opt -xzf pylonSDK*.tar.gz
 
-4. Install udev-rules to set up permissions for basler USB cameras::
+4. Install udev rules to set up permissions for basler USB cameras::
 
        ./setup-usb.sh
 
 
-Using Pylon in Singularity
-==========================
+Using Pylon in Apptainer
+========================
 
-Pylon is currently not installed in the Singularity image so it needs to be
-installed on the host system.  To be able to use it from inside Singularity,
-the installation path needs to be bound when running the image::
+When accessing the cameras from within Apptainer containers, you need to either
+install the Pylon SDK in the container, or you can simply bind it from the host system (assuming it's installed there) using
 
-    singularity shell -B /opt/pylon5 blmc_ei.sif
+.. code-block:: text
 
+    apptainer shell --bind=/opt/pylon5 container.sif
+
+Note that even if the Pylon SDK is installed in the container, it may be needed
+to set up the udev rules on the host system (see last step in the section
+above).
+
+
+Configuring Cameras
+===================
+
+The Pylon camera drivers in trifinger_cameras expect a unique "DeviceUserID"
+written to the camera to be able to identify it (especially important for the
+:cpp:class:`~trifinger_cameras::TriCameraDriver` where the three cameras need to
+be distinguished.
+
+This ID can be set using using the ``pylon_write_device_user_id_to_camera``
+command that is included in the package, using the following steps:
+
+1. Connect the camera to the computer.  **Make sure no other camera is
+   connected** (the tool will simply write to the first camera found).
+2. Run
+
+   .. code-block:: sh
+
+      ros2 run trifinger_cameras pylon_write_device_user_id_to_camera "some_id"
+
+Once written, the "DeviceUserID" will be displayed by the PylonViewerApp
+(unfortunately it's not possible to modifiy it there).
+
+For the TriFinger robots, we use the IDs "camera60", "camera180" and "camera300"
+based on their approximate angular position relative to the fingers, see
+:ref:`trifinger_docs:finger_and_camera_names`.

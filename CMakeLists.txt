@@ -120,6 +120,19 @@ if (${Pylon_FOUND})
     list(APPEND install_targets pylon_list_cameras)
 
 
+    add_executable(
+        pylon_write_device_user_id_to_camera
+        src/pylon_write_device_user_id_to_camera.cpp
+    )
+    target_include_directories(pylon_write_device_user_id_to_camera PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+        ${Pylon_INCLUDE_DIRS}
+    )
+    target_link_libraries(pylon_write_device_user_id_to_camera ${Pylon_LIBRARIES})
+    list(APPEND install_targets pylon_write_device_user_id_to_camera)
+
+
     # Set library names to variables, so we can use the variable instead of the
     # direct name below.  In case, Pylon drivers are not built, the variables
     # will be empty and thus not cause trouble when used for linking etc.
