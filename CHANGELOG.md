@@ -7,6 +7,8 @@
   script `check_camera_sharpness` to easily test different parameters on live camera
   data.  This can be used, for example, to automatically detect if a camera is
   significantly out of focus.
+- Executable `pylon_write_device_user_id_to_camera` to set the "DeviceUserID" of
+  Pylon cameras.
 
 ### Removed
 - Obsolete script `verify_calibration.py`
