@@ -105,7 +105,7 @@ def main():
         "--threshold",
         "-t",
         type=float,
-        default=12.0,
+        default=10.0,
         help="""Threshold for the edge mean.  Images with an 'edge mean' below this
             threshold are marked as too blurry.  Default: %(default)s.
         """,
