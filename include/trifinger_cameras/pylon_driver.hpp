@@ -23,6 +23,7 @@
 
 #include <robot_interfaces/sensors/sensor_driver.hpp>
 #include <trifinger_cameras/camera_observation.hpp>
+#include <trifinger_cameras/settings.hpp>
 
 namespace trifinger_cameras
 {
@@ -39,7 +40,8 @@ public:
      *     to half their original size.
      */
     PylonDriver(const std::string& device_user_id,
-                bool downsample_images = true);
+                bool downsample_images = true,
+                Settings settings = Settings());
 
     ~PylonDriver();
 
@@ -62,6 +64,7 @@ public:
     CameraObservation get_observation();
 
 private:
+    std::shared_ptr<const PylonDriverSettings> settings_;
     const std::string device_user_id_;
     const bool downsample_images_;
     Pylon::PylonAutoInitTerm auto_init_term_;

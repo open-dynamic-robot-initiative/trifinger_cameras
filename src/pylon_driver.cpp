@@ -9,7 +9,6 @@
 #include <chrono>
 #include <iostream>
 
-#include <ament_index_cpp/get_package_share_directory.hpp>
 #include <opencv2/opencv.hpp>
 
 namespace trifinger_cameras
@@ -54,8 +53,11 @@ cv::Mat BGR2BayerBG(const cv::Mat& bgr_image)
 }
 
 PylonDriver::PylonDriver(const std::string& device_user_id,
-                         bool downsample_images)
-    : device_user_id_(device_user_id), downsample_images_(downsample_images)
+                         bool downsample_images,
+                         Settings settings)
+    : settings_(settings.get_pylon_driver_settings()),
+      device_user_id_(device_user_id),
+      downsample_images_(downsample_images)
 {
     try
     {
@@ -248,12 +250,8 @@ cv::Mat PylonDriver::downsample_raw_image(const cv::Mat& image)
 
 void PylonDriver::set_camera_configuration()
 {
-    const std::string filename =
-        ament_index_cpp::get_package_share_directory("trifinger_cameras") +
-        "/config/pylon_camera_settings.txt";
-
     Pylon::CFeaturePersistence::Load(
-        filename.c_str(), &camera_.GetNodeMap(), true);
+        settings_->pylon_settings_file.c_str(), &camera_.GetNodeMap(), true);
 
     // Use the following command to generate a config file with the current
     // settings:

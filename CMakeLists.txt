@@ -104,9 +104,7 @@ if (${Pylon_FOUND})
         ${Pylon_LIBRARIES}
         robot_interfaces::robot_interfaces
         camera_observations
-    )
-    ament_target_dependencies(pylon_driver
-        ament_index_cpp
+        settings
     )
     list(APPEND install_targets pylon_driver)
 
