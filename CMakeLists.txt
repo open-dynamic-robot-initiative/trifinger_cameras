@@ -47,20 +47,20 @@ set(install_targets "")
 
 
 # Libraries
-add_library(pylon_camera_settings
-    src/pylon_camera_settings.cpp
+add_library(settings
+    src/settings.cpp
 )
-target_include_directories(pylon_camera_settings PUBLIC
+target_include_directories(settings PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
     ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(pylon_camera_settings
+target_link_libraries(settings
     tomlplusplus::tomlplusplus
 )
-ament_target_dependencies(pylon_camera_settings
+ament_target_dependencies(settings
     ament_index_cpp
 )
-list(APPEND install_targets pylon_camera_settings)
+list(APPEND install_targets settings)
 
 add_library(camera_observations
     src/camera_observation.cpp
