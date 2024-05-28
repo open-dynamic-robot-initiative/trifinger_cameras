@@ -28,6 +28,7 @@ find_package(sensor_msgs REQUIRED)
 
 find_package(Eigen3 REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(tomlplusplus REQUIRED)
 
 find_package(Pylon)
 if (${Pylon_FOUND})
@@ -46,6 +47,21 @@ set(install_targets "")
 
 
 # Libraries
+add_library(pylon_camera_settings
+    src/pylon_camera_settings.cpp
+)
+target_include_directories(pylon_camera_settings PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+    ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(pylon_camera_settings
+    tomlplusplus::tomlplusplus
+)
+ament_target_dependencies(pylon_camera_settings
+    ament_index_cpp
+)
+list(APPEND install_targets pylon_camera_settings)
+
 add_library(camera_observations
     src/camera_observation.cpp
     src/tricamera_observation.cpp
