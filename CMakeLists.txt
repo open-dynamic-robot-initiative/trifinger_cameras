@@ -121,6 +121,7 @@ if (${Pylon_FOUND})
         ${Pylon_LIBRARIES}
         robot_interfaces::robot_interfaces
         pylon_driver
+        settings
     )
     list(APPEND install_targets tricamera_driver)
 
