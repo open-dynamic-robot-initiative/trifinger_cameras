@@ -25,6 +25,7 @@ find_package(robot_interfaces REQUIRED)
 find_package(serialization_utils REQUIRED)
 find_package(yaml_utils REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(cli_utils REQUIRED)
 
 find_package(Eigen3 REQUIRED)
 find_package(OpenCV REQUIRED)
@@ -148,6 +149,20 @@ if (${Pylon_FOUND})
     target_link_libraries(pylon_write_device_user_id_to_camera ${Pylon_LIBRARIES})
     list(APPEND install_targets pylon_write_device_user_id_to_camera)
 
+    add_executable(pylon_dump_camera_settings
+        src/pylon_dump_camera_settings.cpp
+    )
+    target_include_directories(pylon_dump_camera_settings PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+        ${Pylon_INCLUDE_DIRS}
+    )
+    target_link_libraries(pylon_dump_camera_settings
+        ${Pylon_LIBRARIES}
+        pylon_driver
+        cli_utils::program_options
+    )
+    list(APPEND install_targets pylon_dump_camera_settings)
 
     # Set library names to variables, so we can use the variable instead of the
     # direct name below.  In case, Pylon drivers are not built, the variables
