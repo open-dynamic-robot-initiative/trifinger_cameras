@@ -179,6 +179,7 @@ target_include_directories(pybullet_tricamera_driver PUBLIC
 )
 target_link_libraries(pybullet_tricamera_driver
     camera_observations
+    settings
     serialization_utils::serialization_utils
     robot_interfaces::robot_interfaces
     pybind11_opencv::pybind11_opencv
