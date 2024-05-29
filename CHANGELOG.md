@@ -9,6 +9,9 @@
   significantly out of focus.
 - Executable `pylon_write_device_user_id_to_camera` to set the "DeviceUserID" of
   Pylon cameras.
+- Make some settings (e.g. frame rate) configurable through a TOML config file.  For
+  more information see
+  [documentation](https://open-dynamic-robot-initiative.github.io/trifinger_cameras/doc/configuration.html)
 
 ### Removed
 - Obsolete script `verify_calibration.py`
