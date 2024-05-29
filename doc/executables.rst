@@ -5,17 +5,16 @@ Executables
 The package contains a number of executables for calibration, testing, data
 analysis, etc.
 
-They can all be run like this:
+.. note::
 
-::
+   All executables described here can be run via ``ros2 run``, i.e. like this:
 
-    ros2 run trifinger_cameras <executable-name> [<arguments>]
+   .. code-block:: sh
 
-For example
+       $ ros2 run trifinger_cameras <executable_name> <args ...>
 
-::
-
-    ros2 run trifinger_cameras tricamera_log_viewer path/to/camera_data.dat 
+   This part is omitted in the examples below for better readability but should be added
+   when actually executing them.
 
 
 .. todo::
@@ -28,13 +27,11 @@ For example
    - calibrate_trifingerpro_cameras
    - camera_log_viewer
    - charuco_board
-   - check_camera_sharpness
    - convert_to_camera_pose
    - detect_aruco_marker
    - load_camera_config_test
    - overlay_camera_stream
    - overlay_real_and_rendered_images
-   - pylon_list_cameras
    - record_image_dataset
    - tricamera_log_converter
    - tricamera_log_viewer
@@ -59,6 +56,7 @@ viewer applications for basic tests.
 Run with ``--help`` to get a full list of options for each demo.
 
 
+.. _executable_check_camera_sharpness:
 
 check_camera_sharpness
 ======================
@@ -90,3 +88,51 @@ As argument, the ID of the camera needs to be passed.  Example:
 
 Additional arguments can be used to set initial values for the parameters.  Run
 with ``--help`` to get a complete list.
+
+
+
+.. _executable_pylon_list_cameras:
+
+pylon_list_cameras
+==================
+
+List all currently connected Pylon cameras.  Doesn't expect any arguments, i.e. simply
+run
+
+.. code-block:: sh
+
+    $ pylon_list_cameras
+
+
+.. _executable_pylon_write_device_user_id_to_camera:
+
+pylon_write_device_user_id_to_camera
+====================================
+
+Writes the "DeviceUserID" to a Pylon camera.  This ID is needed to distinguish cameras
+if multiple of them are connected.  See also :ref:`pylon_set_device_user_id`.
+
+Expects as argument the ID and writes it to the first camera found, so **make sure no
+other camera is connected** before running the command.
+
+.. code-block:: sh
+
+    $ pylon_write_device_user_id_to_camera "some_id"
+
+Once written, the "DeviceUserID" will be displayed by the PylonViewerApp (unfortunately
+it's not possible to modify it there).
+
+
+.. _executable_pylon_dump_camera_settings:
+
+pylon_dump_camera_settings
+==========================
+
+Connect to a Pylon camera and print its settings to stdout.  When saved to a file, this
+can be used as ``pylon_settings_file`` in the Pylon driver (see :ref:`settings`).
+
+Usage (saving the settings to a file "camera_settings.txt":
+
+.. code-block:: sh
+
+   $ pylon_dump_camera_settings "device_user_id" > camera_settings.txt

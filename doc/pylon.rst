@@ -37,28 +37,41 @@ to set up the udev rules on the host system (see last step in the section
 above).
 
 
-Configuring Cameras
-===================
+.. _pylon_set_device_user_id:
+
+Set Device Name
+===============
 
 The Pylon camera drivers in trifinger_cameras expect a unique "DeviceUserID"
 written to the camera to be able to identify it (especially important for the
 :cpp:class:`~trifinger_cameras::TriCameraDriver` where the three cameras need to
 be distinguished.
 
-This ID can be set using using the ``pylon_write_device_user_id_to_camera``
-command that is included in the package, using the following steps:
-
-1. Connect the camera to the computer.  **Make sure no other camera is
-   connected** (the tool will simply write to the first camera found).
-2. Run
-
-   .. code-block:: sh
-
-      ros2 run trifinger_cameras pylon_write_device_user_id_to_camera "some_id"
+This ID can be set using using the
+:ref:`executable_pylon_write_device_user_id_to_camera` command that is included in the
+package.
 
 Once written, the "DeviceUserID" will be displayed by the PylonViewerApp
-(unfortunately it's not possible to modifiy it there).
+(unfortunately it's not possible to modify it there).
 
 For the TriFinger robots, we use the IDs "camera60", "camera180" and "camera300"
 based on their approximate angular position relative to the fingers, see
 :ref:`trifinger_docs:finger_and_camera_names`.
+
+
+Camera Configuration
+====================
+
+For configuration of camera settings like frame rate, white balancing, etc., see
+:ref:`pylon_settings_file`.
+
+
+Command Line Tools
+==================
+
+This package contains a number of command line tools for general handling of Pylon
+cameras:
+
+- :ref:`executable_pylon_list_cameras`
+- :ref:`executable_pylon_write_device_user_id_to_camera`
+- :ref:`executable_pylon_dump_camera_settings`

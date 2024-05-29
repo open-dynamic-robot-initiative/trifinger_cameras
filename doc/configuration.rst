@@ -78,6 +78,4 @@ This package ships with a default settings file (see
 rate, you may simply copy that file and change the corresponding values.
 For more complex changes, it is recommended to use the graphical interface of the
 Pylon Viewer application (part of the SDK) and then save the settings to a file using
-TODO.
-
-.. todo:: instructions on how to save settings to file
+:ref:`executable_pylon_dump_camera_settings`.
