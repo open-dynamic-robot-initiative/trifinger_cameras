@@ -10,6 +10,8 @@ only support integer values).
 
 This test is also performed in robot_fingers/trifingerpro_post_submission.py.
 """
+
+from __future__ import annotations
 import argparse
 import dataclasses
 import typing
@@ -24,7 +26,7 @@ from trifinger_cameras import utils
 
 def add_label(
     image: np.ndarray, label: str, position: typing.Literal["top", "bottom"]
-):
+) -> np.ndarray:
     """Add label to the given image.
 
     Args:
@@ -59,9 +61,7 @@ def add_label(
     return image
 
 
-def auto_canny_params(
-    image: np.ndarray, sigma: float = 0.33
-) -> typing.Tuple[float, float]:
+def auto_canny_params(image: np.ndarray, sigma: float = 0.33) -> tuple[float, float]:
     median = np.median(image)
     lower = max(0, (1.0 - sigma) * median)
     upper = min(255, (1.0 + sigma) * median)
@@ -85,7 +85,7 @@ class Params:
         self.edge_mean_threshold = value
 
 
-def main():
+def main() -> None:
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument(
         "camera_id",
@@ -116,20 +116,29 @@ def main():
         default=3,
         help="Buffer size in seconds for the smoothed edge mean.",
     )
+    argparser.add_argument(
+        "--update-freq",
+        type=float,
+        default=10.0,
+        help="""Frequency at which new images are fetched from the camera.  Should not
+            be higher than the actual frame rate of the camera.
+        """,
+    )
     args = argparser.parse_args()
 
     camera_data = trifinger_cameras.camera.SingleProcessData()
     camera_driver = trifinger_cameras.camera.PylonDriver(args.camera_id)
 
-    camera_backend = trifinger_cameras.camera.Backend(  # noqa
+    camera_backend = trifinger_cameras.camera.Backend(  # noqa: F841
         camera_driver, camera_data
     )
     camera_frontend = trifinger_cameras.camera.Frontend(camera_data)
 
     params = Params(args.canny[0], args.canny[1], args.threshold)
 
-    camera_fps = 10
-    mean_buffer = deque([], maxlen=camera_fps * args.buffer_size)
+    mean_buffer: deque[float] = deque(
+        [], maxlen=int(args.update_freq * args.buffer_size)
+    )
 
     window_name = f"Image Stream [{args.camera_id}]"
     cv2.namedWindow(window_name)
@@ -141,9 +150,7 @@ def main():
         max(200, params.canny_threshold1),
         params.set_canny_threshold1,
     )
-    cv2.setTrackbarPos(
-        "Canny threshold 1", window_name, int(params.canny_threshold1)
-    )
+    cv2.setTrackbarPos("Canny threshold 1", window_name, int(params.canny_threshold1))
     cv2.createTrackbar(
         "Canny threshold 2",
         window_name,
@@ -151,9 +158,7 @@ def main():
         max(400, params.canny_threshold2),
         params.set_canny_threshold2,
     )
-    cv2.setTrackbarPos(
-        "Canny threshold 2", window_name, int(params.canny_threshold2)
-    )
+    cv2.setTrackbarPos("Canny threshold 2", window_name, int(params.canny_threshold2))
     cv2.createTrackbar(
         "Edge mean threshold",
         window_name,
@@ -165,6 +170,7 @@ def main():
         "Edge mean threshold", window_name, int(params.edge_mean_threshold)
     )
 
+    rate_ms = int(1000 / args.update_freq)
     while True:
         observation = camera_frontend.get_latest_observation()
         image = utils.convert_image(observation.image)
@@ -197,15 +203,14 @@ def main():
         add_label(image, args.camera_id, "top")
         add_label(
             image,
-            "Canny mean: %.1f | smoothed: %.1f"
-            % (edges_mean, mean_buffer_mean),
+            "Canny mean: %.1f | smoothed: %.1f" % (edges_mean, mean_buffer_mean),
             "bottom",
         )
 
         cv2.imshow(window_name, image)
 
         # stop if either "q" or ESC is pressed
-        if cv2.waitKey(90) in [ord("q"), 27]:  # 27 = ESC
+        if cv2.waitKey(rate_ms) in [ord("q"), 27]:  # 27 = ESC
             break
 
 
