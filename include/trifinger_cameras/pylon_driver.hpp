@@ -28,6 +28,17 @@
 namespace trifinger_cameras
 {
 /**
+ * @brief Connect to Pylon camera.
+ *
+ * @param device_user_id The user-defined name of the camera.  Can be set with
+ *  the executable `pylon_write_device_user_id_to_camera`.
+ * @param camera Pointer to the Pylon::CInstantCamera instance to which the
+ *  camera will be attached.
+ */
+void pylon_connect(std::string_view device_user_id,
+                   Pylon::CInstantCamera* camera);
+
+/**
  * @brief Driver for interacting with a camera via Pylon and storing
  * images using OpenCV.
  */

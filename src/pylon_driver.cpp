@@ -52,6 +52,63 @@ cv::Mat BGR2BayerBG(const cv::Mat& bgr_image)
     return bayer_img;
 }
 
+void pylon_connect(std::string_view device_user_id,
+                   Pylon::CInstantCamera* camera)
+{
+    Pylon::PylonInitialize();
+    Pylon::CTlFactory& tl_factory = Pylon::CTlFactory::GetInstance();
+    Pylon::DeviceInfoList_t device_list;
+
+    if (tl_factory.EnumerateDevices(device_list) == 0)
+    {
+        Pylon::PylonTerminate();
+        throw std::runtime_error("No devices present, please connect one.");
+    }
+
+    Pylon::DeviceInfoList_t::const_iterator device_iterator;
+    if (device_user_id.empty())
+    {
+        std::cout << "No device ID specified. Creating a camera object "
+                     "with the first device id in the device list."
+                  << std::endl;
+        device_iterator = device_list.begin();
+        camera->Attach(tl_factory.CreateDevice(*device_iterator));
+    }
+    else
+    {
+        bool found_desired_device = false;
+
+        for (device_iterator = device_list.begin();
+             device_iterator != device_list.end();
+             ++device_iterator)
+        {
+            std::string device_user_id_found(
+                device_iterator->GetUserDefinedName());
+            if (device_user_id == device_user_id_found)
+            {
+                found_desired_device = true;
+                break;
+            }
+        }
+
+        if (found_desired_device)
+        {
+            camera->Attach(tl_factory.CreateDevice(*device_iterator));
+        }
+        else
+        {
+            Pylon::PylonTerminate();
+            throw std::runtime_error(
+                "Device id " + std::string(device_user_id) +
+                " doesn't correspond to any "
+                "connected devices, please retry with a valid id.");
+        }
+    }
+
+    camera->Open();
+    camera->MaxNumBuffer = 5;
+}
+
 PylonDriver::PylonDriver(const std::string& device_user_id,
                          bool downsample_images,
                          Settings settings)
@@ -61,69 +118,15 @@ PylonDriver::PylonDriver(const std::string& device_user_id,
 {
     try
     {
-        Pylon::CTlFactory& tl_factory = Pylon::CTlFactory::GetInstance();
-        Pylon::PylonInitialize();
-        Pylon::DeviceInfoList_t device_list;
-
-        if (tl_factory.EnumerateDevices(device_list) == 0)
-        {
-            Pylon::PylonTerminate();
-            throw std::runtime_error("No devices present, please connect one.");
-        }
-
-        Pylon::DeviceInfoList_t::const_iterator device_iterator;
-        if (device_user_id.empty())
-        {
-            device_iterator = device_list.begin();
-            camera_.Attach(tl_factory.CreateDevice(*device_iterator));
-            std::cout << "No device ID specified. Creating a camera object "
-                         "with the first device id in the device list."
-                      << std::endl;
-        }
-        else
-        {
-            bool found_desired_device = false;
-
-            for (device_iterator = device_list.begin();
-                 device_iterator != device_list.end();
-                 ++device_iterator)
-            {
-                std::string device_user_id_found(
-                    device_iterator->GetUserDefinedName());
-                if (device_user_id == device_user_id_found)
-                {
-                    found_desired_device = true;
-                    break;
-                }
-            }
-
-            if (found_desired_device)
-            {
-                camera_.Attach(tl_factory.CreateDevice(*device_iterator));
-            }
-            else
-            {
-                Pylon::PylonTerminate();
-                throw std::runtime_error(
-                    "Device id " + device_user_id_ +
-                    " doesn't correspond to any "
-                    "connected devices, please retry with a valid id.");
-            }
-
-            camera_.Open();
-            camera_.MaxNumBuffer = 5;
-
-            set_camera_configuration();
-
-            camera_.StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
-        }
-
+        pylon_connect(device_user_id, &camera_);
+        set_camera_configuration();
+        camera_.StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
         format_converter_.OutputPixelFormat = Pylon::PixelType_BGR8packed;
     }
     catch (const Pylon::GenericException& e)
     {
-        // convert Pylon exceptions to an std exception, so it is understood by
-        // pybind11
+        // convert Pylon exceptions to an std exception, so it is understood
+        // by pybind11
         throw std::runtime_error("Camera Error (" + device_user_id_ +
                                  "): " + e.what());
     }
@@ -152,7 +155,8 @@ CameraObservation PylonDriver::get_observation()
 
         if (ptr_grab_result->GrabSucceeded())
         {
-            // ensure that the actual image size matches with the expected one
+            // ensure that the actual image size matches with the expected
+            // one
             if (ptr_grab_result->GetHeight() / 2 != image_frame.height ||
                 ptr_grab_result->GetWidth() / 2 != image_frame.width)
             {
@@ -172,7 +176,8 @@ CameraObservation PylonDriver::get_observation()
                 Pylon::CPylonImage pylon_image_bgr;
                 format_converter_.Convert(pylon_image_bgr, ptr_grab_result);
 
-                // NOTE: the cv::Mat points to the memory of pylon_image_bgr!
+                // NOTE: the cv::Mat points to the memory of
+                // pylon_image_bgr!
                 cv::Mat image_bgr =
                     cv::Mat(ptr_grab_result->GetHeight(),
                             ptr_grab_result->GetWidth(),
@@ -213,8 +218,8 @@ CameraObservation PylonDriver::get_observation()
     }
     catch (const Pylon::GenericException& e)
     {
-        // convert Pylon exceptions to an std exception, so it is understood by
-        // pybind11
+        // convert Pylon exceptions to an std exception, so it is understood
+        // by pybind11
         throw std::runtime_error("Camera Error (" + device_user_id_ +
                                  "): " + e.what());
     }
@@ -252,10 +257,5 @@ void PylonDriver::set_camera_configuration()
 {
     Pylon::CFeaturePersistence::Load(
         settings_->pylon_settings_file.c_str(), &camera_.GetNodeMap(), true);
-
-    // Use the following command to generate a config file with the current
-    // settings:
-    // Pylon::CFeaturePersistence::Save("/tmp/camera_settings.txt",
-    //                                 &camera_.GetNodeMap());
 }
 }  // namespace trifinger_cameras
