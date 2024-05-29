@@ -8,6 +8,7 @@ The source code is hosted on GitHub_.
    :hidden:
 
    doc/installation.rst
+   doc/configuration.rst
    doc/executables.rst
    doc/pylon.rst
    doc/troubleshooting.rst

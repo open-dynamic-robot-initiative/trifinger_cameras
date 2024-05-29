@@ -53,22 +53,17 @@ struct TriCameraDriverSettings
 /**
  * @brief Central class for loading settings.
  *
- * This class is the central facility to load settings for this package from a
- * TOML file.  The file can have the following tables/keys:
+ * @verbatim embed:rst:leading-asterisk
  *
- * ```toml
- * [pylon_driver]
- * pylon_settings_file = "path/to/pylon_settings_file.txt"
+ * Central facility to load settings for this package from a TOML file.
  *
- * [tricamera_driver]
- * frame_rate_fps = 10
- * ```
- *
- * All values are optional.  If not specified, default values are used.
+ * For information about the config file format, see :ref:`configuration`.
  *
  * Constructing the class will parse the TOML file but actual settings objects
  * for the different modules are only created when the corresponding getter is
  * called the first time.
+ *
+ * @endverbatim
  */
 class Settings
 {
