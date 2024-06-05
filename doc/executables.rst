@@ -109,8 +109,9 @@ run
 pylon_write_device_user_id_to_camera
 ====================================
 
-Writes the "DeviceUserID" to a Pylon camera.  This ID is needed to distinguish cameras
-if multiple of them are connected.  See also :ref:`pylon_set_device_user_id`.
+Writes a custom device name ("DeviceUserID") to a Pylon camera.  This ID is needed to
+distinguish cameras if multiple of them are connected.  See also
+:ref:`pylon_set_device_user_id`.
 
 Expects as argument the ID and writes it to the first camera found, so **make sure no
 other camera is connected** before running the command.
@@ -119,8 +120,12 @@ other camera is connected** before running the command.
 
     $ pylon_write_device_user_id_to_camera "some_id"
 
-Once written, the "DeviceUserID" will be displayed by the PylonViewerApp (unfortunately
-it's not possible to modify it there).
+After writing, the camera needs to be reset for the change to become active (e.g. by
+unplugging and plugging in again).
+
+Starting with version 6 of the Pylon SDK, the "Device User ID" can also be set using the
+"pylon Viewer" application that ships with the SDK.  Older versions will list the camera
+with the given name but don't seem to have an option to change it.
 
 
 .. _executable_pylon_dump_camera_settings:
