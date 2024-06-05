@@ -116,12 +116,14 @@ PylonDriver::PylonDriver(const std::string& device_user_id,
                          bool downsample_images,
                          Settings settings)
     : settings_(settings.get_pylon_driver_settings()),
-      device_user_id_(device_user_id),
       downsample_images_(downsample_images)
 {
     try
     {
         pylon_connect(device_user_id, &camera_);
+        // get device user id from camera (useful in case an empty id was passed, in
+        // which case a random camera is connected)
+        device_user_id_ = camera_.GetDeviceInfo().GetUserDefinedName();
         set_camera_configuration();
         camera_.StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
         format_converter_.OutputPixelFormat = Pylon::PixelType_BGR8packed;
