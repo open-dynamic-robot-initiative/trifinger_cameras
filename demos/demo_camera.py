@@ -7,13 +7,15 @@ Basically illustrates what objects to create to interact with the
 camera, and the available methods for that.
 """
 import argparse
+import sys
+
 import cv2
 
 import trifinger_cameras
 from trifinger_cameras import utils
 
 
-def main():
+def main() -> int:
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument(
         "--pylon",
@@ -39,13 +41,17 @@ def main():
     camera_data = trifinger_cameras.camera.SingleProcessData()
     # camera_data = trifinger_cameras.camera.MultiProcessData("cam", True, 10)
 
-    if args.pylon:
-        camera_driver = trifinger_cameras.camera.PylonDriver(args.camera_id)
-    else:
-        camera_id = int(args.camera_id) if args.camera_id else 0
-        camera_driver = trifinger_cameras.camera.OpenCVDriver(camera_id)
+    try:
+        if args.pylon:
+            camera_driver = trifinger_cameras.camera.PylonDriver(args.camera_id)
+        else:
+            camera_id = int(args.camera_id) if args.camera_id else 0
+            camera_driver = trifinger_cameras.camera.OpenCVDriver(camera_id)
+    except Exception as e:
+        print("Failed to initialise driver:", e)
+        return 1
 
-    camera_backend = trifinger_cameras.camera.Backend(  # noqa
+    camera_backend = trifinger_cameras.camera.Backend(  # noqa: F841
         camera_driver, camera_data
     )
     camera_frontend = trifinger_cameras.camera.Frontend(camera_data)
@@ -68,6 +74,8 @@ def main():
         print("Save recorded data to file {}".format(args.record))
         logger.stop_and_save(args.record)
 
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
