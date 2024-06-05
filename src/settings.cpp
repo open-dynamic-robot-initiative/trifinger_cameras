@@ -7,6 +7,8 @@
 
 #include <string_view>
 
+#include <fmt/format.h>
+
 namespace trifinger_cameras
 {
 std::shared_ptr<PylonDriverSettings> PylonDriverSettings::load_from_toml(
@@ -61,7 +63,7 @@ Settings::Settings()
         std::getenv(std::string(ENV_VARIABLE_CONFIG_FILE).c_str());
     if (config_file_path)
     {
-        config_ = toml::parse_file(config_file_path);
+        parse_file(config_file_path);
     }
     // If no file is specified, simply do nothing here.  This results in config_
     // being an empty toml::table and thus the `load_from_toml()` functions
@@ -70,9 +72,21 @@ Settings::Settings()
 
 Settings::Settings(const std::filesystem::path& file)
 {
-    config_ = toml::parse_file(file.string());
+    parse_file(file);
 }
 
+void Settings::parse_file(const std::filesystem::path& file)
+{
+    try
+    {
+        config_ = toml::parse_file(file.string());
+    }
+    catch (const toml::parse_error& e)
+    {
+        throw std::runtime_error(fmt::format(
+            "Failed to parse config file '{}': {}", file.c_str(), e.what()));
+    }
+}
 std::shared_ptr<const PylonDriverSettings> Settings::get_pylon_driver_settings()
 {
     if (!pylon_driver_settings_)

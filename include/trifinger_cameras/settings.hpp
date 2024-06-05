@@ -96,6 +96,8 @@ private:
     toml::table config_;
     std::shared_ptr<PylonDriverSettings> pylon_driver_settings_;
     std::shared_ptr<TriCameraDriverSettings> tricamera_driver_settings_;
+
+    void parse_file(const std::filesystem::path& file);
 };
 
 }  // namespace trifinger_cameras

@@ -28,6 +28,7 @@ find_package(sensor_msgs REQUIRED)
 find_package(cli_utils REQUIRED)
 
 find_package(Eigen3 REQUIRED)
+find_package(fmt REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(tomlplusplus REQUIRED)
 
@@ -57,6 +58,7 @@ target_include_directories(settings PUBLIC
     ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(settings
     tomlplusplus::tomlplusplus
+    fmt::fmt
 )
 ament_target_dependencies(settings
     ament_index_cpp
