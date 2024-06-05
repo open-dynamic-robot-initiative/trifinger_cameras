@@ -33,6 +33,7 @@ PYBIND11_MODULE(py_tricamera_types, m)
              pybind11::arg("camera2"),
              pybind11::arg("camera3"),
              pybind11::arg("downsample_images") = true)
+        .def_readonly("rate", &TriCameraDriver::rate)
         .def("get_observation", &TriCameraDriver::get_observation);
 #endif
 

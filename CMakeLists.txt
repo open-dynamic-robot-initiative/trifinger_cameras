@@ -321,5 +321,5 @@ ament_export_libraries(
     pybullet_tricamera_driver
     camera_calibration_parser
 )
-ament_export_dependencies(yaml_utils sensor_msgs)
+ament_export_dependencies(yaml_utils sensor_msgs tomlplusplus)
 ament_package(CONFIG_EXTRAS cmake/cfg_extras.cmake.in)
