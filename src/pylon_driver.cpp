@@ -9,6 +9,7 @@
 #include <chrono>
 #include <iostream>
 
+#include <fmt/format.h>
 #include <opencv2/opencv.hpp>
 
 namespace trifinger_cameras
@@ -68,10 +69,12 @@ void pylon_connect(std::string_view device_user_id,
     Pylon::DeviceInfoList_t::const_iterator device_iterator;
     if (device_user_id.empty())
     {
-        std::cout << "No device ID specified. Creating a camera object "
-                     "with the first device id in the device list."
-                  << std::endl;
         device_iterator = device_list.begin();
+
+        fmt::print(
+            "No device ID specified.  Connecting to first camera in the list "
+            "({})\n",
+            device_iterator->GetUserDefinedName());
         camera->Attach(tl_factory.CreateDevice(*device_iterator));
     }
     else
@@ -99,9 +102,9 @@ void pylon_connect(std::string_view device_user_id,
         {
             Pylon::PylonTerminate();
             throw std::runtime_error(
-                "Device id " + std::string(device_user_id) +
-                " doesn't correspond to any "
-                "connected devices, please retry with a valid id.");
+                fmt::format("Device id {} doesn't correspond to any connected "
+                            "devices, please retry with a valid id.",
+                            device_user_id));
         }
     }
 
@@ -127,8 +130,8 @@ PylonDriver::PylonDriver(const std::string& device_user_id,
     {
         // convert Pylon exceptions to an std exception, so it is understood
         // by pybind11
-        throw std::runtime_error("Camera Error (" + device_user_id_ +
-                                 "): " + e.what());
+        throw std::runtime_error(
+            fmt::format("Camera Error ({}): {}", device_user_id_, e.what()));
     }
 }
 
@@ -160,15 +163,14 @@ CameraObservation PylonDriver::get_observation()
             if (ptr_grab_result->GetHeight() / 2 != image_frame.height ||
                 ptr_grab_result->GetWidth() / 2 != image_frame.width)
             {
-                std::stringstream msg;
-                msg << device_user_id_ << ": "
-                    << "Size of grabbed frame (" << ptr_grab_result->GetWidth()
-                    << "x" << ptr_grab_result->GetHeight()
-                    << ") does not match expected size ("
-                    << image_frame.width * 2 << "x" << image_frame.height * 2
-                    << ").";
-
-                throw std::length_error(msg.str());
+                throw std::length_error(
+                    fmt::format("{}: Size of grabbed frame ({}x{}) does not "
+                                "match expected size ({}x{}).",
+                                device_user_id_,
+                                ptr_grab_result->GetWidth(),
+                                ptr_grab_result->GetHeight(),
+                                image_frame.width * 2,
+                                image_frame.height * 2));
             }
 
             if (downsample_images_)
@@ -212,16 +214,16 @@ CameraObservation PylonDriver::get_observation()
         }
         else
         {
-            throw std::runtime_error("Failed to grab image from camera " +
-                                     device_user_id_ + ".");
+            throw std::runtime_error(fmt::format(
+                "Failed to grab image from camera '{}'.", device_user_id_));
         }
     }
     catch (const Pylon::GenericException& e)
     {
         // convert Pylon exceptions to an std exception, so it is understood
         // by pybind11
-        throw std::runtime_error("Camera Error (" + device_user_id_ +
-                                 "): " + e.what());
+        throw std::runtime_error(
+            fmt::format("Camera Error ({}): {}", device_user_id_, e.what()));
     }
 
     return image_frame;
