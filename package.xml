@@ -24,6 +24,7 @@
     <depend>serialization_utils</depend>
     <depend>yaml_utils</depend>
     <depend>sensor_msgs</depend>
+    <depend>cli_utils</depend>
 
     <exec_depend>tf</exec_depend>
 
