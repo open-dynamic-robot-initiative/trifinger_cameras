@@ -42,8 +42,6 @@ endif()
 ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR python/${PROJECT_NAME})
 
 
-ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-
 
 set(install_targets "")
 
@@ -316,14 +314,6 @@ endif()
 
 
 
-ament_export_include_directories(include ${Pylon_INCLUDE_DIRS})
-ament_export_libraries(
-    camera_observations
-    opencv_driver
-    ${pylon_driver}
-    ${tricamera_driver}
-    pybullet_tricamera_driver
-    camera_calibration_parser
-)
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(yaml_utils sensor_msgs tomlplusplus fmt)
 ament_package(CONFIG_EXTRAS cmake/cfg_extras.cmake.in)
