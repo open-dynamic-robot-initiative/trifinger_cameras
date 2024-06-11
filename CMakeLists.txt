@@ -105,6 +105,7 @@ if (${Pylon_FOUND})
     target_link_libraries(pylon_driver
         ${OpenCV_LIBRARIES}
         ${Pylon_LIBRARIES}
+        fmt::fmt
         robot_interfaces::robot_interfaces
         camera_observations
         settings
@@ -221,6 +222,7 @@ list(APPEND install_targets load_camera_config_test)
 add_pybind11_module(py_camera_types srcpy/py_camera_types.cpp
     LINK_LIBRARIES
         pybind11_opencv::pybind11_opencv
+        settings
         camera_observations
         opencv_driver
         ${pylon_driver}
@@ -323,5 +325,5 @@ ament_export_libraries(
     pybullet_tricamera_driver
     camera_calibration_parser
 )
-ament_export_dependencies(yaml_utils sensor_msgs tomlplusplus)
+ament_export_dependencies(yaml_utils sensor_msgs tomlplusplus fmt)
 ament_package(CONFIG_EXTRAS cmake/cfg_extras.cmake.in)
