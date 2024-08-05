@@ -36,9 +36,7 @@ def calibrate_intrinsic_parameters(calibration_data, calibration_results_file):
 
     pattern = os.path.join(calibration_data, "*.png")
     files = glob.glob(pattern)
-    camera_matrix, dist_coeffs, error = handler.calibrate(
-        files, visualize=True
-    )
+    camera_matrix, dist_coeffs, error = handler.calibrate(files, visualize=True)
     camera_info = dict()
     camera_info["camera_matrix"] = dict()
     camera_info["camera_matrix"]["rows"] = 3
@@ -47,9 +45,7 @@ def calibrate_intrinsic_parameters(calibration_data, calibration_results_file):
     camera_info["distortion_coefficients"] = dict()
     camera_info["distortion_coefficients"]["rows"] = 1
     camera_info["distortion_coefficients"]["cols"] = 5
-    camera_info["distortion_coefficients"][
-        "data"
-    ] = dist_coeffs.flatten().tolist()
+    camera_info["distortion_coefficients"]["data"] = dist_coeffs.flatten().tolist()
 
     with open(calibration_results_file, "w") as outfile:
         yaml.dump(
@@ -111,9 +107,7 @@ def calibrate_extrinsic_parameters(
     calibration_data["projection_matrix"] = dict()
     calibration_data["projection_matrix"]["rows"] = 4
     calibration_data["projection_matrix"]["cols"] = 4
-    calibration_data["projection_matrix"][
-        "data"
-    ] = projection_matrix.flatten().tolist()
+    calibration_data["projection_matrix"]["data"] = projection_matrix.flatten().tolist()
 
     with open(extrinsic_calibration_filename, "w") as outfile:
         yaml.dump(
@@ -258,9 +252,7 @@ def calibrate_mean_extrinsic_parameters(
         # x-distance of the pattern origin to the world origin
         tx = Dx - dx
         # y-distance of the pattern origin to the world origin
-        ty = (Dy - T2 * np.sin(alphr) - T1 * np.tan(alphr)) * np.cos(
-            alphr
-        ) - dy
+        ty = (Dy - T2 * np.sin(alphr) - T1 * np.tan(alphr)) * np.cos(alphr) - dy
         # z-distance of the pattern origin to the world origin
         tz = (
             T2
@@ -283,9 +275,9 @@ def calibrate_mean_extrinsic_parameters(
 
         # absolute world vectors equivalent to cv2 tvec and rvec:
         tvecW = np.matmul(cv2.Rodrigues(rvec)[0], Tvec) + tvec.T
-        rvecW = cv2.Rodrigues(
-            np.matmul(cv2.Rodrigues(rvec)[0], np.matmul(zMat, xMat))
-        )[0]
+        rvecW = cv2.Rodrigues(np.matmul(cv2.Rodrigues(rvec)[0], np.matmul(zMat, xMat)))[
+            0
+        ]
         #        embed()
 
         projection_matrix[ind, 0:4, 0:4] = utils.rodrigues_to_matrix(rvecW)
@@ -406,22 +398,16 @@ def calibrate_mean_extrinsic_parameters(
     calibration_data["camera_matrix"] = dict()
     calibration_data["camera_matrix"]["rows"] = 3
     calibration_data["camera_matrix"]["cols"] = 3
-    calibration_data["camera_matrix"][
-        "data"
-    ] = camera_matrix.flatten().tolist()
+    calibration_data["camera_matrix"]["data"] = camera_matrix.flatten().tolist()
     calibration_data["distortion_coefficients"] = dict()
     calibration_data["distortion_coefficients"]["rows"] = 1
     calibration_data["distortion_coefficients"]["cols"] = 5
-    calibration_data["distortion_coefficients"][
-        "data"
-    ] = dist_coeffs.flatten().tolist()
+    calibration_data["distortion_coefficients"]["data"] = dist_coeffs.flatten().tolist()
 
     calibration_data["projection_matrix"] = dict()
     calibration_data["projection_matrix"]["rows"] = 4
     calibration_data["projection_matrix"]["cols"] = 4
-    calibration_data["projection_matrix"][
-        "data"
-    ] = projection_matrix.flatten().tolist()
+    calibration_data["projection_matrix"]["data"] = projection_matrix.flatten().tolist()
 
     calibration_data["projection_matrix_std"] = dict()
     calibration_data["projection_matrix_std"]["rows"] = 4
@@ -502,10 +488,7 @@ def main():
         )
 
     elif args.action == "extrinsic_mean":
-        if (
-            not args.calibration_data
-            and not args.intrinsic_calibration_filename
-        ):
+        if not args.calibration_data and not args.intrinsic_calibration_filename:
             raise RuntimeError(
                 "neither calibration_data nor intrinsic_calibration_filename not specified."
             )
@@ -518,14 +501,10 @@ def main():
                 calibration_data = yaml.safe_load(file)
 
             def config_matrix(data):
-                return np.array(data["data"]).reshape(
-                    data["rows"], data["cols"]
-                )
+                return np.array(data["data"]).reshape(data["rows"], data["cols"])
 
             camera_matrix = config_matrix(calibration_data["camera_matrix"])
-            dist_coeffs = config_matrix(
-                calibration_data["distortion_coefficients"]
-            )
+            dist_coeffs = config_matrix(calibration_data["distortion_coefficients"])
         else:
             camera_matrix, dist_coeffs = calibrate_intrinsic_parameters(
                 args.calibration_data, args.extrinsic_calibration_filename

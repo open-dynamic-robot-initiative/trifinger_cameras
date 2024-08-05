@@ -61,9 +61,7 @@ def add_label(
     return image
 
 
-def auto_canny_params(
-    image: np.ndarray, sigma: float = 0.33
-) -> tuple[float, float]:
+def auto_canny_params(image: np.ndarray, sigma: float = 0.33) -> tuple[float, float]:
     median = np.median(image)
     lower = max(0, (1.0 - sigma) * median)
     upper = min(255, (1.0 + sigma) * median)
@@ -152,9 +150,7 @@ def main() -> None:
         max(200, params.canny_threshold1),
         params.set_canny_threshold1,
     )
-    cv2.setTrackbarPos(
-        "Canny threshold 1", window_name, int(params.canny_threshold1)
-    )
+    cv2.setTrackbarPos("Canny threshold 1", window_name, int(params.canny_threshold1))
     cv2.createTrackbar(
         "Canny threshold 2",
         window_name,
@@ -162,9 +158,7 @@ def main() -> None:
         max(400, params.canny_threshold2),
         params.set_canny_threshold2,
     )
-    cv2.setTrackbarPos(
-        "Canny threshold 2", window_name, int(params.canny_threshold2)
-    )
+    cv2.setTrackbarPos("Canny threshold 2", window_name, int(params.canny_threshold2))
     cv2.createTrackbar(
         "Edge mean threshold",
         window_name,
@@ -209,8 +203,7 @@ def main() -> None:
         add_label(image, args.camera_id, "top")
         add_label(
             image,
-            "Canny mean: %.1f | smoothed: %.1f"
-            % (edges_mean, mean_buffer_mean),
+            "Canny mean: %.1f | smoothed: %.1f" % (edges_mean, mean_buffer_mean),
             "bottom",
         )
 

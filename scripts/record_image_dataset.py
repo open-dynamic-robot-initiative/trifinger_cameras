@@ -124,9 +124,7 @@ def main():
         camera_module = trifinger_cameras.camera
         image_saver = SingleImageSaver(args.outdir, args.camera_id)
     elif args.driver == "opencv":
-        camera_driver = trifinger_cameras.camera.OpenCVDriver(
-            int(args.camera_id)
-        )
+        camera_driver = trifinger_cameras.camera.OpenCVDriver(int(args.camera_id))
         camera_module = trifinger_cameras.camera
         image_saver = SingleImageSaver(args.outdir, args.camera_id)
 
@@ -147,9 +145,7 @@ def main():
                 observation = camera_frontend.get_latest_observation()
                 if args.driver == "tri":
                     for i, name in enumerate(camera_names):
-                        image = utils.convert_image(
-                            observation.cameras[i].image
-                        )
+                        image = utils.convert_image(observation.cameras[i].image)
                         cv2.imshow(name, image)
                 else:
                     image = utils.convert_image(observation.image)

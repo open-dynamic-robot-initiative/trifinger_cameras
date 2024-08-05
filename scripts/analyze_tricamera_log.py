@@ -38,12 +38,7 @@ def main():
     print("Total duration: {:.1f} seconds".format(duration))
 
     stamps = [
-        np.array(
-            [
-                observation.cameras[c].timestamp
-                for observation in log_reader.data
-            ]
-        )
+        np.array([observation.cameras[c].timestamp for observation in log_reader.data])
         for c in range(3)
     ]
 

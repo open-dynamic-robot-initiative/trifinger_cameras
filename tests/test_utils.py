@@ -18,9 +18,7 @@ class TestUtils(unittest.TestCase):
             ]
         )
 
-        np.testing.assert_array_almost_equal(
-            utils.rodrigues_to_matrix(rotvec), mat
-        )
+        np.testing.assert_array_almost_equal(utils.rodrigues_to_matrix(rotvec), mat)
 
     def test_convert_image(self):
         # NOTE: this is not testing if the result is correct but simply uses
@@ -192,15 +190,9 @@ class TestUtils(unittest.TestCase):
         )
 
         np.testing.assert_array_equal(utils.convert_image(raw_image), img_bgr)
-        np.testing.assert_array_equal(
-            utils.convert_image(raw_image, "bgr"), img_bgr
-        )
-        np.testing.assert_array_equal(
-            utils.convert_image(raw_image, "rgb"), img_rgb
-        )
-        np.testing.assert_array_equal(
-            utils.convert_image(raw_image, "gray"), img_gray
-        )
+        np.testing.assert_array_equal(utils.convert_image(raw_image, "bgr"), img_bgr)
+        np.testing.assert_array_equal(utils.convert_image(raw_image, "rgb"), img_rgb)
+        np.testing.assert_array_equal(utils.convert_image(raw_image, "gray"), img_gray)
 
         # verify that invalid formats result in an error
         with self.assertRaises(ValueError):

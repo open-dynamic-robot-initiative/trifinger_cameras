@@ -68,9 +68,7 @@ def main():
     finger.reset_finger_positions_and_velocities([-1.57, 1.57, -2.7] * 3)
 
     # load real images
-    image_dir = (
-        args.image_dir if args.image_dir else args.config_dir[0] / "0001"
-    )
+    image_dir = args.image_dir if args.image_dir else args.config_dir[0] / "0001"
     print("image_dir:", image_dir)
     real_images = [
         cv2.imread(str(image_dir / "camera60.png")),
@@ -94,8 +92,7 @@ def main():
         sim_images = cameras.get_images()
         # images are rgb --> convert to bgr for opencv
         sim_images = [
-            cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-            for img in sim_images
+            cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR) for img in sim_images
         ]
         sim_images = np.hstack(sim_images)
 
@@ -106,9 +103,7 @@ def main():
 
         cv2.namedWindow(title_window)
         trackbar_name = "Alpha x %d" % SLIDER_MAX
-        cv2.createTrackbar(
-            trackbar_name, title_window, 0, SLIDER_MAX, on_trackbar
-        )
+        cv2.createTrackbar(trackbar_name, title_window, 0, SLIDER_MAX, on_trackbar)
         # Show some stuff
         blend.on_trackbar(0)
 
