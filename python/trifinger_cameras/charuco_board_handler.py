@@ -1,4 +1,5 @@
 """Class for Charuco board detection and camera calibration."""
+
 import glob
 import json
 import os
