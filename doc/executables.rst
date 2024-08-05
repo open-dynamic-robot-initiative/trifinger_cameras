@@ -35,6 +35,7 @@ analysis, etc.
    - record_image_dataset
    - tricamera_log_converter
    - tricamera_log_viewer
+   - tricamera_monitor_rate
    - tricamera_test_connection
 
 

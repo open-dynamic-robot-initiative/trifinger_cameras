@@ -265,6 +265,7 @@ install_scripts(
     scripts/record_image_dataset.py
     scripts/tricamera_log_converter.py
     scripts/tricamera_log_viewer.py
+    scripts/tricamera_monitor_rate.py
     scripts/tricamera_test_connection.py
 
     DESTINATION lib/${PROJECT_NAME}
