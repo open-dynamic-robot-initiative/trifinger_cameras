@@ -73,8 +73,8 @@ PyBulletTriCameraDriver::get_observation()
                last_update_robot_time_index_ + frame_rate_in_robot_steps_)
         {
             using namespace std::chrono_literals;
-            // TODO the sleep here might be problematic if very high frame rate is
-            // required
+            // TODO the sleep here might be problematic if very high frame rate
+            // is required
             std::this_thread::sleep_for(10ms);
             auto new_robot_t =
                 robot_data_->observation->newest_timeindex(false);

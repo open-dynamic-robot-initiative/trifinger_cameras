@@ -10,8 +10,8 @@
 
 #include <robot_interfaces/finger_types.hpp>
 #include <robot_interfaces/sensors/sensor_driver.hpp>
-#include <trifinger_cameras/tricamera_observation.hpp>
 #include <trifinger_cameras/settings.hpp>
+#include <trifinger_cameras/tricamera_observation.hpp>
 
 namespace trifinger_cameras
 {

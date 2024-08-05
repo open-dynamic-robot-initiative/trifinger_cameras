@@ -58,8 +58,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // need braces so that Pylon::CInstantCamera instance is destructed before the end
-    // (otherwise segfaults)
+    // need braces so that Pylon::CInstantCamera instance is destructed before
+    // the end (otherwise segfaults)
     {
         Pylon::CInstantCamera camera;
         try

@@ -121,8 +121,8 @@ PylonDriver::PylonDriver(const std::string& device_user_id,
     try
     {
         pylon_connect(device_user_id, &camera_);
-        // get device user id from camera (useful in case an empty id was passed, in
-        // which case a random camera is connected)
+        // get device user id from camera (useful in case an empty id was
+        // passed, in which case a random camera is connected)
         device_user_id_ = camera_.GetDeviceInfo().GetUserDefinedName();
         set_camera_configuration();
         camera_.StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
