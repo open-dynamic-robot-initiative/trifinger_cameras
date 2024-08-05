@@ -9,10 +9,11 @@
   significantly out of focus.
 - Executable `pylon_write_device_user_id_to_camera` to set the "DeviceUserID" of
   Pylon cameras.
+- Executable `pylon_dump_camera_settings` to save settings of a Pylon camera.
 - Make some settings (e.g. frame rate) configurable through a TOML config file.  For
   more information see
   [documentation](https://open-dynamic-robot-initiative.github.io/trifinger_cameras/doc/configuration.html)
-- Script `tricamera_monitor_rate.py` for checking the actual frame rate (most meant for
+- Executable `tricamera_monitor_rate` for checking the actual frame rate (most meant for
   debugging and testing during development)
 
 ### Removed
@@ -20,6 +21,11 @@
 
 ### Fixed
 - pybind11 build error on Ubuntu 22.04
+- Connecting to camera without specifying DeviceUserID was not working.  It now opens
+  the first camera in the list of connected cameras if no ID is specified.
+
+### Changed
+- `pylon_list_cameras`:  Keep stdout clean if there are no cameras.
 
 
 ## [1.0.0] - 2022-06-28
