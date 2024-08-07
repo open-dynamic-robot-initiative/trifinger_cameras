@@ -16,13 +16,22 @@ namespace py = pybind11;
 
 namespace trifinger_cameras
 {
+constexpr int ROBOT_STEPS_PER_SECOND = 1000;
+
 PyBulletTriCameraDriver::PyBulletTriCameraDriver(
     robot_interfaces::TriFingerTypes::BaseDataPtr robot_data,
-    bool render_images)
+    bool render_images,
+    Settings settings)
     : render_images_(render_images),
       robot_data_(robot_data),
       last_update_robot_time_index_(0)
 {
+    // compute frame rate in robot steps
+    float frame_rate_fps =
+        settings.get_tricamera_driver_settings()->frame_rate_fps;
+    frame_rate_in_robot_steps_ =
+        std::lround(ROBOT_STEPS_PER_SECOND / frame_rate_fps);
+
     // initialize Python interpreter if not already done
     if (!Py_IsInitialized())
     {
@@ -57,11 +66,15 @@ PyBulletTriCameraDriver::get_observation()
     }
     else
     {
-        // Synchronize with robot backend:  To achieve 10 Hz, there should be
-        // one camera observation every 100 robot steps.
-        while (robot_t < last_update_robot_time_index_ + 100)
+        // Synchronize with robot backend:  To achieve the desired frame rate,
+        // there should be one camera observation every
+        // `frame_rate_in_robot_steps_` robot steps.
+        while (robot_t <
+               last_update_robot_time_index_ + frame_rate_in_robot_steps_)
         {
             using namespace std::chrono_literals;
+            // TODO the sleep here might be problematic if very high frame rate
+            // is required
             std::this_thread::sleep_for(10ms);
             auto new_robot_t =
                 robot_data_->observation->newest_timeindex(false);

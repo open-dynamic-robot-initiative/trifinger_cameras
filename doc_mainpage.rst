@@ -8,8 +8,14 @@ The source code is hosted on GitHub_.
    :hidden:
 
    doc/installation.rst
-   doc/executables.rst
+   doc/configuration.rst
    doc/pylon.rst
    doc/troubleshooting.rst
+
+.. toctree::
+   :caption: References
+   :hidden:
+
+   doc/executables.rst
 
 .. _GitHub: https://github.com/open-dynamic-robot-initiative/trifinger_cameras

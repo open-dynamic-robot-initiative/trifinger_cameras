@@ -21,7 +21,7 @@ int main()
 
         if (tl_factory.EnumerateDevices(device_list) == 0)
         {
-            std::cout << "No cameras found." << std::endl;
+            std::cerr << "No cameras found." << std::endl;
         }
         else
         {

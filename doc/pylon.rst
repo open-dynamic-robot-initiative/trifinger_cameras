@@ -37,28 +37,50 @@ to set up the udev rules on the host system (see last step in the section
 above).
 
 
-Configuring Cameras
-===================
+.. _pylon_set_device_user_id:
 
-The Pylon camera drivers in trifinger_cameras expect a unique "DeviceUserID"
-written to the camera to be able to identify it (especially important for the
-:cpp:class:`~trifinger_cameras::TriCameraDriver` where the three cameras need to
+Set Device Name
+===============
+
+The Pylon camera drivers in trifinger_cameras expect a unique device name
+("DeviceUserID") written to the camera to be able to identify it (especially important
+for the :cpp:class:`~trifinger_cameras::TriCameraDriver` where the three cameras need to
 be distinguished.
 
-This ID can be set using using the ``pylon_write_device_user_id_to_camera``
-command that is included in the package, using the following steps:
+There are two ways to set the name:
 
-1. Connect the camera to the computer.  **Make sure no other camera is
-   connected** (the tool will simply write to the first camera found).
-2. Run
+1. Using the :ref:`executable_pylon_write_device_user_id_to_camera` command that is
+   included in the package.
+2. Via the "pylon Viewer" application that is shipped with the Pylon SDK 6 or later
+   [1]_.  The "Device User ID" can be modified in the "Device Control" category of the
+   camera settings.
 
-   .. code-block:: sh
-
-      ros2 run trifinger_cameras pylon_write_device_user_id_to_camera "some_id"
-
-Once written, the "DeviceUserID" will be displayed by the PylonViewerApp
-(unfortunately it's not possible to modifiy it there).
+Note that after setting a new name, the camera needs to be reset for the change to
+become active (either via the pylon Viewer app or by simply unplugging and plugging in
+again).
 
 For the TriFinger robots, we use the IDs "camera60", "camera180" and "camera300"
 based on their approximate angular position relative to the fingers, see
 :ref:`trifinger_docs:finger_and_camera_names`.
+
+
+Camera Configuration
+====================
+
+For configuration of camera settings like frame rate, white balancing, etc., see
+:ref:`pylon_settings_file`.
+
+
+Command Line Tools
+==================
+
+This package contains a number of command line tools for general handling of Pylon
+cameras:
+
+- :ref:`executable_pylon_list_cameras`
+- :ref:`executable_pylon_write_device_user_id_to_camera`
+- :ref:`executable_pylon_dump_camera_settings`
+
+
+.. [1] In version 5, the name will be displayed once set but there doesn't seem to be an
+   option to modify it.

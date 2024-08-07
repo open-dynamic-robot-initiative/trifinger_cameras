@@ -24,8 +24,7 @@ class TriCameraDriver
 {
 public:
     //! @brief Rate at which images are acquired.
-    static constexpr std::chrono::milliseconds rate =
-        std::chrono::milliseconds(100);
+    std::chrono::milliseconds rate;
 
     /**
      * @param device_id_1 device user id of first camera
@@ -37,7 +36,8 @@ public:
     TriCameraDriver(const std::string& device_id_1,
                     const std::string& device_id_2,
                     const std::string& device_id_3,
-                    bool downsample_images = true);
+                    bool downsample_images = true,
+                    Settings settings = Settings());
 
     /**
      * @brief Get the latest observation from the three cameras

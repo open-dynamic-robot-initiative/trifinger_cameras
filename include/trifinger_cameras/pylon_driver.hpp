@@ -23,9 +23,22 @@
 
 #include <robot_interfaces/sensors/sensor_driver.hpp>
 #include <trifinger_cameras/camera_observation.hpp>
+#include <trifinger_cameras/settings.hpp>
 
 namespace trifinger_cameras
 {
+/**
+ * @brief Connect to Pylon camera.
+ *
+ * @param device_user_id The user-defined name of the camera.  Can be set with
+ *  the executable `pylon_write_device_user_id_to_camera`.  Pass empty string to
+ *  simply connect to the first camera found.
+ * @param camera Pointer to the Pylon::CInstantCamera instance to which the
+ *  camera will be attached.
+ */
+void pylon_connect(std::string_view device_user_id,
+                   Pylon::CInstantCamera* camera);
+
 /**
  * @brief Driver for interacting with a camera via Pylon and storing
  * images using OpenCV.
@@ -39,7 +52,8 @@ public:
      *     to half their original size.
      */
     PylonDriver(const std::string& device_user_id,
-                bool downsample_images = true);
+                bool downsample_images = true,
+                Settings settings = Settings());
 
     ~PylonDriver();
 
@@ -62,7 +76,8 @@ public:
     CameraObservation get_observation();
 
 private:
-    const std::string device_user_id_;
+    std::shared_ptr<const PylonDriverSettings> settings_;
+    std::string device_user_id_;
     const bool downsample_images_;
     Pylon::PylonAutoInitTerm auto_init_term_;
     Pylon::CInstantCamera camera_;

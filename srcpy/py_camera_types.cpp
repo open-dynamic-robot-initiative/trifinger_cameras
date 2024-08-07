@@ -9,6 +9,7 @@
 
 #include <trifinger_cameras/camera_observation.hpp>
 #include <trifinger_cameras/opencv_driver.hpp>
+#include <trifinger_cameras/settings.hpp>
 #ifdef Pylon_FOUND
 #include <trifinger_cameras/pylon_driver.hpp>
 #endif
@@ -44,4 +45,19 @@ PYBIND11_MODULE(py_camera_types, m)
         .def_readwrite("timestamp",
                        &CameraObservation::timestamp,
                        "Timestamp when the image was acquired.");
+
+    pybind11::class_<PylonDriverSettings, std::shared_ptr<PylonDriverSettings>>(
+        m, "PylonDriverSettings")
+        .def_readonly("pylon_settings_file",
+                      &PylonDriverSettings::pylon_settings_file);
+    pybind11::class_<TriCameraDriverSettings,
+                     std::shared_ptr<TriCameraDriverSettings>>(
+        m, "TriCameraDriverSettings")
+        .def_readonly("frame_rate_fps",
+                      &TriCameraDriverSettings::frame_rate_fps);
+    pybind11::class_<Settings>(m, "Settings")
+        .def(pybind11::init<>())
+        .def("get_pylon_driver_settings", &Settings::get_pylon_driver_settings)
+        .def("get_tricamera_driver_settings",
+             &Settings::get_tricamera_driver_settings);
 }

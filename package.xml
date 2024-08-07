@@ -24,6 +24,7 @@
     <depend>serialization_utils</depend>
     <depend>yaml_utils</depend>
     <depend>sensor_msgs</depend>
+    <depend>cli_utils</depend>
 
     <exec_depend>tf</exec_depend>
 
@@ -31,7 +32,7 @@
     <exec_depend>python-scipy</exec_depend>
     <exec_depend>python-opencv</exec_depend>
 
-    <test_depend>ament_cmake_gtest</test_depend>
+    <test_depend>ament_cmake_gmock</test_depend>
     <test_depend>ament_cmake_nose</test_depend>
     <test_depend>ament_index_python</test_depend>
 

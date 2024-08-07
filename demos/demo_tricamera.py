@@ -4,6 +4,7 @@ This demo is to start three pylon dependent cameras, view their image streams,
 and if desired, store the timestamps from them to analyse how well the three
 cameras are in sync with each other.
 """
+
 import argparse
 import cv2
 import pickle
@@ -12,7 +13,7 @@ import trifinger_cameras
 from trifinger_cameras import utils
 
 
-def main():
+def main() -> None:  # noqa: D103
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument(
         "--store-timestamps",
@@ -42,7 +43,7 @@ def main():
         camera_driver = trifinger_cameras.tricamera.TriCameraDriver(
             *camera_names
         )
-        camera_backend = trifinger_cameras.tricamera.Backend(  # noqa
+        camera_backend = trifinger_cameras.tricamera.Backend(  # noqa: F841
             camera_driver, camera_data
         )
 
@@ -67,9 +68,8 @@ def main():
         )
 
     if args.store_timestamps:
-        pickle.dump(
-            observations_timestamps_list, open(args.store_timestamps, "wb")
-        )
+        with open(args.store_timestamps, "wb") as f:
+            pickle.dump(observations_timestamps_list, f)
 
 
 if __name__ == "__main__":
