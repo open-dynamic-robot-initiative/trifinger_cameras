@@ -43,9 +43,7 @@ def main() -> int:
 
     try:
         if args.pylon:
-            camera_driver = trifinger_cameras.camera.PylonDriver(
-                args.camera_id
-            )
+            camera_driver = trifinger_cameras.camera.PylonDriver(args.camera_id)
         else:
             camera_id = int(args.camera_id) if args.camera_id else 0
             camera_driver = trifinger_cameras.camera.OpenCVDriver(camera_id)

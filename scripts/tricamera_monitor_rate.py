@@ -45,16 +45,12 @@ def main() -> None:
 
     if args.multi_process:
         logging.debug("Start multi-process data")
-        camera_data = trifinger_cameras.tricamera.MultiProcessData(
-            "tricamera", False
-        )
+        camera_data = trifinger_cameras.tricamera.MultiProcessData("tricamera", False)
     else:
         logging.debug("Start single-process data")
         camera_data = trifinger_cameras.tricamera.SingleProcessData()
         logging.debug("Start back end")
-        camera_driver = trifinger_cameras.tricamera.TriCameraDriver(
-            *camera_names
-        )
+        camera_driver = trifinger_cameras.tricamera.TriCameraDriver(*camera_names)
         camera_backend = trifinger_cameras.tricamera.Backend(  # noqa: F841
             camera_driver, camera_data
         )

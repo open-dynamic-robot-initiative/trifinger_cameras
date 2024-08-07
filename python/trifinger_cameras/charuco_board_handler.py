@@ -159,9 +159,7 @@ class CharucoBoardHandler:
         debug_image = image
 
         if charuco_ids is not None:
-            debug_image = cv2.aruco.drawDetectedCornersCharuco(
-                image, charuco_corners
-            )
+            debug_image = cv2.aruco.drawDetectedCornersCharuco(image, charuco_corners)
 
             if rvec is not None and tvec is not None:
                 debug_image = cv2.aruco.drawAxis(
@@ -194,9 +192,7 @@ class CharucoBoardHandler:
             ret, frame = cap.read()
 
             charuco_corners, charuco_ids, rvec, tvec = self.detect_board(frame)
-            if self.visualize_board(
-                frame, charuco_corners, charuco_ids, rvec, tvec, 1
-            ):
+            if self.visualize_board(frame, charuco_corners, charuco_ids, rvec, tvec, 1):
                 break
 
         # When everything done, release the capture
@@ -235,9 +231,7 @@ class CharucoBoardHandler:
         charuco_corners, charuco_ids, rvec, tvec = self.detect_board(img)
         if charuco_ids is not None:
             if visualize:
-                self.visualize_board(
-                    img, charuco_corners, charuco_ids, rvec, tvec, 0
-                )
+                self.visualize_board(img, charuco_corners, charuco_ids, rvec, tvec, 0)
 
         if rvec is not None:
             print(json.dumps({"rvec": rvec.tolist(), "tvec": tvec.tolist()}))
@@ -246,9 +240,7 @@ class CharucoBoardHandler:
 
         return rvec, tvec
 
-    def detect_board_in_files(
-        self, files: typing.List[str], visualize: bool = False
-    ):
+    def detect_board_in_files(self, files: typing.List[str], visualize: bool = False):
         """Detect the board in multiple files.
 
         Tries to detect the Charuco board in the given list of image files.
@@ -312,9 +304,7 @@ class CharucoBoardHandler:
         self.camera_matrix = None
         self.dist_coeffs = None
 
-        all_corners, all_ids, image_size = self.detect_board_in_files(
-            files, visualize
-        )
+        all_corners, all_ids, image_size = self.detect_board_in_files(files, visualize)
 
         camera_matrix = np.zeros((3, 3))
         dist_coeffs = np.zeros(4)

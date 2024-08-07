@@ -45,9 +45,7 @@ class TestCameraCalibrationFile(unittest.TestCase):
 
         np.testing.assert_array_equal(
             ccf["camera_matrix"],
-            np.array(
-                [[586.36, 0.0, 360.46], [0.0, 590.61, 286.55], [0.0, 0.0, 1.0]]
-            ),
+            np.array([[586.36, 0.0, 360.46], [0.0, 590.61, 286.55], [0.0, 0.0, 1.0]]),
         )
 
         np.testing.assert_array_equal(

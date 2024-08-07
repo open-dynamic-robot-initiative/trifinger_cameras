@@ -75,9 +75,7 @@ def calibrate_intrinsic_parameters(
     camera_info["distortion_coefficients"] = dict()
     camera_info["distortion_coefficients"]["rows"] = 1
     camera_info["distortion_coefficients"]["cols"] = 5
-    camera_info["distortion_coefficients"][
-        "data"
-    ] = dist_coeffs.flatten().tolist()
+    camera_info["distortion_coefficients"]["data"] = dist_coeffs.flatten().tolist()
 
     with open(calibration_results_file, "w") as outfile:
         yaml.dump(
@@ -164,9 +162,7 @@ def calibrate_mean_extrinsic_parameters(
         # x-distance of the pattern origin to the world origin
         tx = Dx - dx
         # y-distance of the pattern origin to the world origin
-        ty = (Dy - T2 * np.sin(alphr) - T1 * np.tan(alphr)) * np.cos(
-            alphr
-        ) - dy
+        ty = (Dy - T2 * np.sin(alphr) - T1 * np.tan(alphr)) * np.cos(alphr) - dy
         # z-distance of the pattern origin to the world origin
         tz = (
             T2
@@ -189,9 +185,9 @@ def calibrate_mean_extrinsic_parameters(
 
         # absolute world vectors equivalent to cv2 tvec and rvec:
         tvecW = np.matmul(cv2.Rodrigues(rvec)[0], Tvec) + tvec.T
-        rvecW = cv2.Rodrigues(
-            np.matmul(cv2.Rodrigues(rvec)[0], np.matmul(zMat, xMat))
-        )[0]
+        rvecW = cv2.Rodrigues(np.matmul(cv2.Rodrigues(rvec)[0], np.matmul(zMat, xMat)))[
+            0
+        ]
         #        embed()
 
         pose_matrix[ind, 0:4, 0:4] = utils.rodrigues_to_matrix(rvecW)
@@ -307,9 +303,7 @@ def calibrate_mean_extrinsic_parameters(
     print("Std proj matrix:")
     print(camera_params.tf_world_to_camera_std)
     print("Rel std proj matrix:")
-    print(
-        camera_params.tf_world_to_camera_std / camera_params.tf_world_to_camera
-    )
+    print(camera_params.tf_world_to_camera_std / camera_params.tf_world_to_camera)
 
     return camera_params
 
@@ -417,9 +411,7 @@ def main():
             return np.array(data["data"]).reshape(data["rows"], data["cols"])
 
         camera_matrix = config_matrix(calibration_data["camera_matrix"])
-        dist_coeffs = config_matrix(
-            calibration_data["distortion_coefficients"]
-        )
+        dist_coeffs = config_matrix(calibration_data["distortion_coefficients"])
     else:
         camera_matrix, dist_coeffs = calibrate_intrinsic_parameters(
             image_files, output_file_full, args.visualize

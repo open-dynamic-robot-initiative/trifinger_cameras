@@ -37,15 +37,9 @@ def main():
         window_60 = "Image Stream camera60"
         window_180 = "Image Stream camera180"
         window_300 = "Image Stream camera300"
-        cv2.imshow(
-            window_60, utils.convert_image(observation.cameras[0].image)
-        )
-        cv2.imshow(
-            window_180, utils.convert_image(observation.cameras[1].image)
-        )
-        cv2.imshow(
-            window_300, utils.convert_image(observation.cameras[2].image)
-        )
+        cv2.imshow(window_60, utils.convert_image(observation.cameras[0].image))
+        cv2.imshow(window_180, utils.convert_image(observation.cameras[1].image))
+        cv2.imshow(window_300, utils.convert_image(observation.cameras[2].image))
 
         # stop if either "q" or ESC is pressed
         if cv2.waitKey(interval) in [ord("q"), 27]:  # 27 = ESC
