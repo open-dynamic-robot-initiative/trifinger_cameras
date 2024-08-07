@@ -31,6 +31,13 @@ def main() -> int:
         """,
     )
     argparser.add_argument(
+        "--multi-process",
+        action="store_true",
+        help="""If set, run only front end with multi-process robot data.  Otherwise run
+            everything within a single process.
+        """,
+    )
+    argparser.add_argument(
         "--record",
         type=str,
         help="""Path to file in which camera data is recorded.""",
@@ -38,22 +45,27 @@ def main() -> int:
 
     args = argparser.parse_args()
 
-    camera_data = trifinger_cameras.camera.SingleProcessData()
-    # camera_data = trifinger_cameras.camera.MultiProcessData("cam", True, 10)
+    if args.multi_process:
+        # In multi-process case assume that the backend is running in a
+        # separate process and only set up the frontend here.
+        camera_data = trifinger_cameras.camera.MultiProcessData("camera", False)
+    else:
+        camera_data = trifinger_cameras.camera.SingleProcessData()
 
-    try:
-        if args.pylon:
-            camera_driver = trifinger_cameras.camera.PylonDriver(args.camera_id)
-        else:
-            camera_id = int(args.camera_id) if args.camera_id else 0
-            camera_driver = trifinger_cameras.camera.OpenCVDriver(camera_id)
-    except Exception as e:
-        print("Failed to initialise driver:", e)
-        return 1
+        try:
+            if args.pylon:
+                camera_driver = trifinger_cameras.camera.PylonDriver(args.camera_id)
+            else:
+                camera_id = int(args.camera_id) if args.camera_id else 0
+                camera_driver = trifinger_cameras.camera.OpenCVDriver(camera_id)
+        except Exception as e:
+            print("Failed to initialise driver:", e)
+            return 1
 
-    camera_backend = trifinger_cameras.camera.Backend(  # noqa: F841
-        camera_driver, camera_data
-    )
+        camera_backend = trifinger_cameras.camera.Backend(  # noqa: F841
+            camera_driver, camera_data
+        )
+
     camera_frontend = trifinger_cameras.camera.Frontend(camera_data)
 
     if args.record:
