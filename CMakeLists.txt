@@ -7,6 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED on)
 # libraries need to be position independent for building Python modules
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# generate compile_commands.json by default (needed for LSP)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
 # pybind11 needs to be first, otherwise other packages which also search for
