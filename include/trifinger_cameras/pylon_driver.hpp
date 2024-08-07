@@ -23,6 +23,7 @@
 
 #include <robot_interfaces/sensors/sensor_driver.hpp>
 #include <trifinger_cameras/camera_observation.hpp>
+#include <trifinger_cameras/camera_parameters.hpp>
 #include <trifinger_cameras/settings.hpp>
 
 namespace trifinger_cameras
@@ -43,7 +44,8 @@ void pylon_connect(std::string_view device_user_id,
  * @brief Driver for interacting with a camera via Pylon and storing
  * images using OpenCV.
  */
-class PylonDriver : public robot_interfaces::SensorDriver<CameraObservation>
+class PylonDriver
+    : public robot_interfaces::SensorDriver<CameraObservation, CameraInfo>
 {
 public:
     /**
@@ -69,11 +71,17 @@ public:
     static cv::Mat downsample_raw_image(const cv::Mat& image);
 
     /**
+     * @brief Get the camera parameters (image size and calibration
+     * coefficients).
+     */
+    virtual CameraInfo get_sensor_info() override;
+
+    /**
      * @brief Get the latest observation (image frame + timestamp of when the
      * frame's grabbed).
      * @return CameraObservation
      */
-    CameraObservation get_observation();
+    virtual CameraObservation get_observation() override;
 
 private:
     std::shared_ptr<const PylonDriverSettings> settings_;

@@ -78,7 +78,10 @@ target_link_libraries(camera_observations
 list(APPEND install_targets camera_observations)
 
 
-add_library(opencv_driver src/opencv_driver.cpp)
+add_library(opencv_driver
+    src/opencv_driver.cpp
+    src/camera_parameters.cpp
+)
 target_include_directories(opencv_driver PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
@@ -87,13 +90,17 @@ target_include_directories(opencv_driver PUBLIC
 target_link_libraries(opencv_driver
     ${OpenCV_LIBRARIES}
     robot_interfaces::robot_interfaces
+    serialization_utils::serialization_utils
     camera_observations
 )
 list(APPEND install_targets opencv_driver)
 
 
 if (${Pylon_FOUND})
-    add_library(pylon_driver src/pylon_driver.cpp)
+    add_library(pylon_driver
+        src/pylon_driver.cpp
+        src/camera_parameters.cpp
+    )
     target_include_directories(pylon_driver PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
@@ -105,6 +112,7 @@ if (${Pylon_FOUND})
         ${Pylon_LIBRARIES}
         fmt::fmt
         robot_interfaces::robot_interfaces
+        serialization_utils::serialization_utils
         camera_observations
         settings
     )
@@ -199,7 +207,10 @@ target_include_directories(camera_calibration_parser PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(camera_calibration_parser yaml_utils::yaml_utils)
+target_link_libraries(camera_calibration_parser
+    serialization_utils::serialization_utils
+    yaml_utils::yaml_utils
+)
 ament_target_dependencies(camera_calibration_parser
     sensor_msgs
 )

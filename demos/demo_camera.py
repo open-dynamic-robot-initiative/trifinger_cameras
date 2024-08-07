@@ -6,6 +6,7 @@ as a non-real time livestream.
 Basically illustrates what objects to create to interact with the
 camera, and the available methods for that.
 """
+
 import argparse
 import sys
 
@@ -15,7 +16,7 @@ import trifinger_cameras
 from trifinger_cameras import utils
 
 
-def main() -> int:
+def main() -> int:  # noqa: D103
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument(
         "--pylon",
@@ -71,6 +72,16 @@ def main() -> int:
     if args.record:
         logger = trifinger_cameras.camera.Logger(camera_data, 10000)
         logger.start()
+
+    print("--- Camera Info: ----------------------")
+    sinfo = camera_frontend.get_sensor_info()
+    print(f"fps: {sinfo.frame_rate_fps}")
+    print(f"width: {sinfo.image_width}")
+    print(f"height: {sinfo.image_height}")
+    print(sinfo.camera_matrix)
+    print(sinfo.distortion_coefficients)
+    print(sinfo.tf_world_to_camera)
+    print("---------------------------------------")
 
     while True:
         observation = camera_frontend.get_latest_observation()

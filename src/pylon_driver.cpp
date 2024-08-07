@@ -143,6 +143,33 @@ PylonDriver::~PylonDriver()
     Pylon::PylonTerminate();
 }
 
+CameraInfo PylonDriver::get_sensor_info()
+{
+    CameraInfo camera_info;
+
+    GenApi::INodeMap& nodemap = camera_.GetNodeMap();
+
+    camera_info.frame_rate_fps =
+        Pylon::CFloatParameter(nodemap, "AcquisitionFrameRate").GetValue();
+
+    camera_info.image_width =
+        Pylon::CIntegerParameter(nodemap, "Width").GetValue();
+    camera_info.image_height =
+        Pylon::CIntegerParameter(nodemap, "Height").GetValue();
+    if (downsample_images_)
+    {
+        camera_info.image_width /= 2;
+        camera_info.image_height /= 2;
+    }
+
+    // FIXME
+    camera_info.camera_matrix = Eigen::Matrix3d::Identity();
+    camera_info.distortion_coefficients = Eigen::Matrix<double, 1, 5>::Zero();
+    camera_info.tf_world_to_camera = Eigen::Matrix4d::Ones() * 9;
+
+    return camera_info;
+}
+
 CameraObservation PylonDriver::get_observation()
 {
     CameraObservation image_frame;

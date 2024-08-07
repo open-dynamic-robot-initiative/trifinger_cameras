@@ -8,6 +8,7 @@
 #include <pybind11_opencv/cvbind.hpp>
 
 #include <trifinger_cameras/camera_observation.hpp>
+#include <trifinger_cameras/camera_parameters.hpp>
 #include <trifinger_cameras/opencv_driver.hpp>
 #include <trifinger_cameras/settings.hpp>
 #ifdef Pylon_FOUND
@@ -21,18 +22,20 @@ using namespace trifinger_cameras;
 
 PYBIND11_MODULE(py_camera_types, m)
 {
-    create_sensor_bindings<CameraObservation>(m);
+    create_sensor_bindings<CameraObservation, CameraInfo>(m);
 
     pybind11::class_<OpenCVDriver,
                      std::shared_ptr<OpenCVDriver>,
-                     SensorDriver<CameraObservation>>(m, "OpenCVDriver")
+                     SensorDriver<CameraObservation, CameraInfo>>(
+        m, "OpenCVDriver")
         .def(pybind11::init<int>())
         .def("get_observation", &OpenCVDriver::get_observation);
 
 #ifdef Pylon_FOUND
     pybind11::class_<PylonDriver,
                      std::shared_ptr<PylonDriver>,
-                     SensorDriver<CameraObservation>>(m, "PylonDriver")
+                     SensorDriver<CameraObservation, CameraInfo>>(m,
+                                                                  "PylonDriver")
         .def(pybind11::init<const std::string&, bool>(),
              pybind11::arg("device_user_id"),
              pybind11::arg("downsample_images") = true)
@@ -45,6 +48,16 @@ PYBIND11_MODULE(py_camera_types, m)
         .def_readwrite("timestamp",
                        &CameraObservation::timestamp,
                        "Timestamp when the image was acquired.");
+
+    pybind11::class_<CameraInfo>(m, "CameraInfo")
+        .def(pybind11::init<>())
+        .def_readwrite("frame_rate_fps", &CameraInfo::frame_rate_fps)
+        .def_readwrite("image_width", &CameraInfo::image_width)
+        .def_readwrite("image_height", &CameraInfo::image_height)
+        .def_readwrite("camera_matrix", &CameraInfo::camera_matrix)
+        .def_readwrite("distortion_coefficients",
+                       &CameraInfo::distortion_coefficients)
+        .def_readwrite("tf_world_to_camera", &CameraInfo::tf_world_to_camera);
 
     pybind11::class_<PylonDriverSettings, std::shared_ptr<PylonDriverSettings>>(
         m, "PylonDriverSettings")
