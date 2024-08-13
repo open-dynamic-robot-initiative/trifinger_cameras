@@ -10,6 +10,7 @@
 
 #include <robot_interfaces/finger_types.hpp>
 #include <robot_interfaces/sensors/sensor_driver.hpp>
+#include <trifinger_cameras/camera_parameters.hpp>
 #include <trifinger_cameras/settings.hpp>
 #include <trifinger_cameras/tricamera_observation.hpp>
 
@@ -18,14 +19,16 @@ namespace trifinger_cameras
 /**
  * @brief Driver to get rendered camera images from pyBullet.
  */
-class PyBulletTriCameraDriver : public robot_interfaces::SensorDriver<
-                                    trifinger_cameras::TriCameraObservation>
+class PyBulletTriCameraDriver
+    : public robot_interfaces::SensorDriver<TriCameraObservation, TriCameraInfo>
 {
 public:
     PyBulletTriCameraDriver(
         robot_interfaces::TriFingerTypes::BaseDataPtr robot_data,
         bool render_images = true,
         Settings settings = Settings());
+
+    // FIXME: Implement get_sensor_info()
 
     /**
      * @brief Get the latest observation from the three cameras

@@ -4,6 +4,7 @@
  * @copyright 2020, Max Planck Gesellschaft. All rights reserved.
  * @license BSD 3-clause
  */
+#include <pybind11/stl/filesystem.h>
 
 #include <trifinger_cameras/pybullet_tricamera_driver.hpp>
 #include <trifinger_cameras/tricamera_observation.hpp>
@@ -19,12 +20,13 @@ using namespace trifinger_cameras;
 
 PYBIND11_MODULE(py_tricamera_types, m)
 {
-    create_sensor_bindings<TriCameraObservation>(m);
+    create_sensor_bindings<TriCameraObservation, TriCameraInfo>(m);
 
 #ifdef Pylon_FOUND
     pybind11::class_<TriCameraDriver,
                      std::shared_ptr<TriCameraDriver>,
-                     SensorDriver<TriCameraObservation>>(m, "TriCameraDriver")
+                     SensorDriver<TriCameraObservation, TriCameraInfo>>(
+        m, "TriCameraDriver")
         .def(pybind11::init<const std::string&,
                             const std::string&,
                             const std::string&,
@@ -33,9 +35,21 @@ PYBIND11_MODULE(py_tricamera_types, m)
              pybind11::arg("camera2"),
              pybind11::arg("camera3"),
              pybind11::arg("downsample_images") = true)
+        .def(pybind11::init<const std::filesystem::path&,
+                            const std::filesystem::path&,
+                            const std::filesystem::path&,
+                            bool>(),
+             pybind11::arg("camera_calibration_file_1"),
+             pybind11::arg("camera_calibration_file_2"),
+             pybind11::arg("camera_calibration_file_3"),
+             pybind11::arg("downsample_images") = true)
         .def_readonly("rate", &TriCameraDriver::rate)
         .def("get_observation", &TriCameraDriver::get_observation);
 #endif
+
+    pybind11::class_<TriCameraInfo>(m, "TriCameraInfo")
+        .def(pybind11::init<>())
+        .def_readwrite("camera", &TriCameraInfo::camera);
 
     pybind11::class_<TriCameraObservation>(
         m, "TriCameraObservation", "Observation from the three cameras.")
@@ -49,7 +63,7 @@ PYBIND11_MODULE(py_tricamera_types, m)
 
     pybind11::class_<PyBulletTriCameraDriver,
                      std::shared_ptr<PyBulletTriCameraDriver>,
-                     SensorDriver<TriCameraObservation>>(
+                     SensorDriver<TriCameraObservation, TriCameraInfo>>(
         m, "PyBulletTriCameraDriver")
         .def(pybind11::init<robot_interfaces::TriFingerTypes::BaseDataPtr,
                             bool>(),

@@ -12,7 +12,6 @@
 
 #include <serialization_utils/cereal_eigen.hpp>
 
-
 namespace trifinger_cameras
 {
 struct CameraParameters
@@ -34,12 +33,11 @@ struct CameraParameters
                 CEREAL_NVP(distortion_coefficients),
                 CEREAL_NVP(tf_world_to_camera));
     }
-
 };
 
 std::ostream& operator<<(std::ostream& os, const CameraParameters& cp);
 
-struct CameraInfo: public CameraParameters
+struct CameraInfo : public CameraParameters
 {
     float frame_rate_fps;
 
@@ -48,6 +46,24 @@ struct CameraInfo: public CameraParameters
     {
         CameraParameters::serialize(archive);
         archive(CEREAL_NVP(frame_rate_fps));
+    }
+};
+
+struct TriCameraInfo
+{
+    std::array<CameraInfo, 3> camera;
+
+    TriCameraInfo() = default;
+
+    TriCameraInfo(CameraInfo camera1, CameraInfo camera2, CameraInfo camera3)
+        : camera{camera1, camera2, camera3}
+    {
+    }
+
+    template <class Archive>
+    void serialize(Archive& archive)
+    {
+        archive(CEREAL_NVP(camera));
     }
 };
 
