@@ -166,17 +166,41 @@ void PylonDriver::init(const std::string& device_user_id)
         camera_info_.frame_rate_fps =
             Pylon::CFloatParameter(nodemap, "AcquisitionFrameRate").GetValue();
 
-        // TODO: compare with width/height from calibration file if one is
-        // loaded
-        camera_info_.image_width =
-            Pylon::CIntegerParameter(nodemap, "Width").GetValue();
-        camera_info_.image_height =
+        int image_width = Pylon::CIntegerParameter(nodemap, "Width").GetValue();
+        int image_height =
             Pylon::CIntegerParameter(nodemap, "Height").GetValue();
         if (downsample_images_)
         {
-            camera_info_.image_width /= 2;
-            camera_info_.image_height /= 2;
+            image_width /= 2;
+            image_height /= 2;
         }
+
+        // Check if an image size is set in camera_info_ and raise error, in
+        // case it doesn't match with the size reported by the camera.
+        if (camera_info_.image_width != 0 and
+            camera_info_.image_width != static_cast<unsigned int>(image_width))
+        {
+            throw std::runtime_error(
+                fmt::format("Image width from calibration file ({}) does not "
+                            "match the one from the camera ({}).  You are "
+                            "likely using wrong calibration parameters\n",
+                            camera_info_.image_width,
+                            image_width));
+        }
+        if (camera_info_.image_height != 0 and
+            camera_info_.image_height !=
+                static_cast<unsigned int>(image_height))
+        {
+            throw std::runtime_error(
+                fmt::format("Image height from calibration file ({}) does not "
+                            "match the one from the camera ({}).  You are "
+                            "likely using wrong calibration parameters\n",
+                            camera_info_.image_height,
+                            image_height));
+        }
+
+        camera_info_.image_width = image_width;
+        camera_info_.image_height = image_height;
     }
     catch (const Pylon::GenericException& e)
     {
