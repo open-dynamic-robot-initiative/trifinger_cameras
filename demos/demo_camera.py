@@ -8,6 +8,7 @@ camera, and the available methods for that.
 """
 
 import argparse
+import pathlib
 import sys
 
 import cv2
@@ -30,6 +31,13 @@ def main() -> int:  # noqa: D103
         help="""ID of the camera that is used.  If --pylon is set this refers
             to the DeviceUserId, otherwise it is the index of the device.
         """,
+    )
+    argparser.add_argument(
+        "--camera-info",
+        type=pathlib.Path,
+        metavar="<file>",
+        dest="camera_info_file",
+        help="Path to YAML file with camera calibration data.",
     )
     argparser.add_argument(
         "--multi-process",
@@ -55,7 +63,12 @@ def main() -> int:  # noqa: D103
 
         try:
             if args.pylon:
-                camera_driver = trifinger_cameras.camera.PylonDriver(args.camera_id)
+                if args.camera_info_file:
+                    camera_driver = trifinger_cameras.camera.PylonDriver(
+                        args.camera_info_file
+                    )
+                else:
+                    camera_driver = trifinger_cameras.camera.PylonDriver(args.camera_id)
             else:
                 camera_id = int(args.camera_id) if args.camera_id else 0
                 camera_driver = trifinger_cameras.camera.OpenCVDriver(camera_id)

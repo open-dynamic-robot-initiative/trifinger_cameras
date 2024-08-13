@@ -11,6 +11,8 @@
  */
 #pragma once
 
+#include <filesystem>
+
 #ifndef Pylon_FOUND
 #error Cannot use PylonDriver without Pylon.
 #endif
@@ -49,11 +51,35 @@ class PylonDriver
 {
 public:
     /**
-     * @param device_user_id "DeviceUserID" of the camera.
+     * @brief Connect to camera based on name.
+     *
+     * When using this constructor, the camera calibration coefficients returned
+     * by @ref get_sensor_info will be set to zero.
+     *
+     * @param device_user_id "DeviceUserID" of the camera.  Pass empty string to
+     * connect to first camera found (useful if only one camera is connected).
      * @param downsample_images If set to true (default), images are downsampled
      *     to half their original size.
+     * @param settings Settings for the camera.
      */
     PylonDriver(const std::string& device_user_id,
+                bool downsample_images = true,
+                Settings settings = Settings());
+
+    /**
+     * @brief Connect to camera based on calibration file.
+     *
+     * The provided calibration file is expected to be in YAML format and
+     * contain the "camera_name" (= DeviceUserID) as well as calibration
+     * coefficients.  The latter will be used in the CameraInfo returned by @ref
+     * get_sensor_info.
+     *
+     * @param camera_calibration_file Path to the camera calibration file.
+     * @param downsample_images If set to true (default), images are downsampled
+     *     to half their original size.
+     * @param settings Settings for the camera.
+     */
+    PylonDriver(const std::filesystem::path& camera_calibration_file,
                 bool downsample_images = true,
                 Settings settings = Settings());
 
@@ -73,6 +99,10 @@ public:
     /**
      * @brief Get the camera parameters (image size and calibration
      * coefficients).
+     *
+     * **Important:**  The calibration coefficients are only set if the driver is
+     * initialized with a calibration file (see constructor).  Otherwise, they will be
+     * empty.
      */
     virtual CameraInfo get_sensor_info() override;
 
@@ -85,11 +115,23 @@ public:
 
 private:
     std::shared_ptr<const PylonDriverSettings> settings_;
+    trifinger_cameras::CameraInfo camera_info_ = {};
     std::string device_user_id_;
     const bool downsample_images_;
     Pylon::PylonAutoInitTerm auto_init_term_;
     Pylon::CInstantCamera camera_;
     Pylon::CImageFormatConverter format_converter_;
+
+    /**
+     * @brief Base constructor to be called by public constructors.
+     * @param downsample_images If set to true (default), images are downsampled
+     *     to half their original size.
+     * @param settings Settings for the camera.
+     */
+    PylonDriver(bool downsample_images, Settings settings);
+
+    //! Initialize the camera connection (to be called in the constructor).
+    void init(const std::string& device_user_id);
 
     void set_camera_configuration();
 };

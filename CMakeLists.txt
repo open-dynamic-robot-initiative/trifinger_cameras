@@ -10,6 +10,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # generate compile_commands.json by default (needed for LSP)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# stop build on first error
+string(APPEND CMAKE_CXX_FLAGS " -Wfatal-errors -Werror=return-type")
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
 # pybind11 needs to be first, otherwise other packages which also search for
@@ -116,6 +119,7 @@ if (${Pylon_FOUND})
         fmt::fmt
         robot_interfaces::robot_interfaces
         serialization_utils::serialization_utils
+        camera_calibration_parser
         camera_observations
         settings
     )

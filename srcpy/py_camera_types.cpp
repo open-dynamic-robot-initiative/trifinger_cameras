@@ -5,6 +5,7 @@
  * @license BSD 3-clause
  */
 #include <pybind11/pybind11.h>
+#include <pybind11/stl/filesystem.h>
 #include <pybind11_opencv/cvbind.hpp>
 
 #include <trifinger_cameras/camera_observation.hpp>
@@ -38,6 +39,9 @@ PYBIND11_MODULE(py_camera_types, m)
                                                                   "PylonDriver")
         .def(pybind11::init<const std::string&, bool>(),
              pybind11::arg("device_user_id"),
+             pybind11::arg("downsample_images") = true)
+        .def(pybind11::init<const std::filesystem::path&, bool>(),
+             pybind11::arg("camera_calibration_file"),
              pybind11::arg("downsample_images") = true)
         .def("get_observation", &PylonDriver::get_observation);
 #endif
