@@ -12,6 +12,7 @@ import pathlib
 import sys
 
 import cv2
+import numpy as np
 
 import trifinger_cameras
 from trifinger_cameras import utils
@@ -86,11 +87,11 @@ def main() -> int:  # noqa: D103
         logger = trifinger_cameras.camera.Logger(camera_data, 10000)
         logger.start()
 
+    np.set_printoptions(precision=3, suppress=True)
     print("--- Camera Info: ----------------------")
     sinfo = camera_frontend.get_sensor_info()
     print(f"fps: {sinfo.frame_rate_fps}")
-    print(f"width: {sinfo.image_width}")
-    print(f"height: {sinfo.image_height}")
+    print(f"width x height: {sinfo.image_width}x{sinfo.image_height}")
     print(sinfo.camera_matrix)
     print(sinfo.distortion_coefficients)
     print(sinfo.tf_world_to_camera)

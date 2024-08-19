@@ -6,8 +6,10 @@ cameras are in sync with each other.
 """
 
 import argparse
-import cv2
 import pickle
+
+import cv2
+import numpy as np
 
 import trifinger_cameras
 from trifinger_cameras import utils
@@ -45,6 +47,18 @@ def main() -> None:  # noqa: D103
 
     camera_frontend = trifinger_cameras.tricamera.Frontend(camera_data)
     observations_timestamps_list = []
+
+    np.set_printoptions(precision=3, suppress=True)
+    print("=== Camera Info: ======================")
+    for i, info in enumerate(camera_frontend.get_sensor_info().camera):
+        print(f"--- Camera {i}: ----------------------")
+        print(f"fps: {info.frame_rate_fps}")
+        print(f"width x height: {info.image_width}x{info.image_height}")
+        print(info.camera_matrix)
+        print(info.distortion_coefficients)
+        print(info.tf_world_to_camera)
+        print("---------------------------------------")
+    print("=======================================")
 
     while True:
         observation = camera_frontend.get_latest_observation()
