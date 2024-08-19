@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run back-end for a single camera, using multi-process robot data."""
+"""Run back-end for a single camera, using multi-process data."""
 
 import argparse
 import logging
