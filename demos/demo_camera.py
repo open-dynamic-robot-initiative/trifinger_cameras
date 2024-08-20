@@ -99,7 +99,10 @@ def main() -> int:  # noqa: D103
 
     while True:
         observation = camera_frontend.get_latest_observation()
-        image = utils.convert_image(observation.image)
+        if args.pylon:
+            image = utils.convert_image(observation.image)
+        else:
+            image = observation.image
         window_name = "Image Stream"
         cv2.imshow(window_name, image)
 
