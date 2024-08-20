@@ -100,9 +100,9 @@ public:
      * @brief Get the camera parameters (image size and calibration
      * coefficients).
      *
-     * **Important:**  The calibration coefficients are only set if the driver is
-     * initialized with a calibration file (see constructor).  Otherwise, they will be
-     * empty.
+     * **Important:**  The calibration coefficients are only set if the driver
+     * is initialized with a calibration file (see constructor).  Otherwise,
+     * they will be empty.
      */
     virtual CameraInfo get_sensor_info() override;
 

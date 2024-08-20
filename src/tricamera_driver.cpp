@@ -66,8 +66,8 @@ void TriCameraDriver::init(Settings settings)
     rate = std::chrono::milliseconds(std::lround(rate_sec * 1000));
 
     sensor_info_ = TriCameraInfo(camera1_.get_sensor_info(),
-                         camera2_.get_sensor_info(),
-                         camera3_.get_sensor_info());
+                                 camera2_.get_sensor_info(),
+                                 camera3_.get_sensor_info());
     sensor_info_.camera[0].frame_rate_fps = cfg->frame_rate_fps;
     sensor_info_.camera[1].frame_rate_fps = cfg->frame_rate_fps;
     sensor_info_.camera[2].frame_rate_fps = cfg->frame_rate_fps;
