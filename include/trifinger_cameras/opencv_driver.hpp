@@ -21,8 +21,6 @@ class OpenCVDriver
 public:
     OpenCVDriver(int device_id);
 
-    // FIXME: implement get_sensor_info()
-
     /**
      * @brief Grab a single frame along with its timestamp.
      *
