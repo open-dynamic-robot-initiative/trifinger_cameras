@@ -7,12 +7,19 @@
 #include <trifinger_cameras/pybullet_tricamera_driver.hpp>
 
 #include <chrono>
+#include <cmath>
 #include <thread>
+
+#include <fmt/core.h>
+#include <pybind11/eigen.h>
+#include <pybind11/numpy.h>
 
 #include <pybind11_opencv/cvbind.hpp>
 #include <serialization_utils/cereal_cvmat.hpp>
 
 namespace py = pybind11;
+
+using namespace pybind11::literals;  // to bring in the `_a` litera
 
 namespace trifinger_cameras
 {
@@ -32,6 +39,10 @@ PyBulletTriCameraDriver::PyBulletTriCameraDriver(
     frame_rate_in_robot_steps_ =
         std::lround(ROBOT_STEPS_PER_SECOND / frame_rate_fps);
 
+    sensor_info_.camera[0].frame_rate_fps = frame_rate_fps;
+    sensor_info_.camera[1].frame_rate_fps = frame_rate_fps;
+    sensor_info_.camera[2].frame_rate_fps = frame_rate_fps;
+
     // initialize Python interpreter if not already done
     if (!Py_IsInitialized())
     {
@@ -50,11 +61,83 @@ PyBulletTriCameraDriver::PyBulletTriCameraDriver(
         py::module mod_camera =
             py::module::import("trifinger_simulation.camera");
         cameras_ = mod_camera.attr("TriFingerCameras")();
+
+        // Alternatively, it is also possible to simulate actual cameras based
+        // on calibration parameters:
+        // py::module pathlib = py::module::import("pathlib");
+        // cameras_ =
+        // mod_camera.attr("create_trifinger_camera_array_from_config")(
+        //   pathlib.attr("Path")("/etc/trifingerpro"),
+        //   "camera{id}_cropped_and_downsampled.yml");
+
+        // fill the sensor_info_ structure for all three cameras.
+        for (size_t i = 0; i < 3; i++)
+        {
+            // Computations for the camera matrix and the world-to-camera
+            // transformation are based on the inverse code in the
+            // CalibratedCamera class in trifinger_simulation.
+
+            py::object camera =
+                static_cast<py::list>(cameras_.attr("cameras"))[i];
+
+            int width = camera.attr("get_width")().cast<int>();
+            int height = camera.attr("get_height")().cast<int>();
+
+            sensor_info_.camera[i].image_width = width;
+            sensor_info_.camera[i].image_height = height;
+
+            // if (py::hasattr(camera, "_original_camera_matrix"))
+            if (py::isinstance(camera, mod_camera.attr("CalibratedCamera")))
+            {
+                sensor_info_.camera[i].camera_matrix =
+                    camera.attr("_original_camera_matrix")
+                        .cast<Eigen::Matrix3d>();
+            }
+            else
+            {
+                // Compute focal lengths and center points from the scale and
+                // shift values in the projection matrix.
+                //
+                // Reshape to proper 4x4 matrix so the code for element access
+                // is less confusing (note that PyBullet uses Fortran order for
+                // some reason).
+                py::array_t<double> projection_matrix =
+                    numpy_.attr("asarray")(camera.attr("_proj_matrix"))
+                        .attr("reshape")(4, 4, "order"_a = "F");
+                double xscale = projection_matrix.at(0, 0);
+                double yscale = projection_matrix.at(1, 1);
+                double xshift = projection_matrix.at(0, 2);
+                double yshift = projection_matrix.at(1, 2);
+                double cx = -(width * (xshift - 1)) / 2;
+                double cy = (height * (yshift + 1)) / 2;
+                double fx = xscale * width / 2;
+                double fy = yscale * height / 2;
+                sensor_info_.camera[i].camera_matrix << fx, 0, cx, 0, fy, cy, 0,
+                    0, 1;
+            }
+
+            // The view matrix is flattened in Fortran order, so reshape
+            // accordingly to get the proper 4x4 matrix.
+            Eigen::Matrix4d view_matrix =
+                numpy_.attr("asarray")(camera.attr("_view_matrix"))
+                    .attr("reshape")(4, 4, "order"_a = "F")
+                    .cast<Eigen::Matrix4d>();
+
+            // To get the proper world-to-camera transformation, the view matrix
+            // needs to be rotated by 180° around the x-axis.
+            Eigen::Matrix4d rot_x_180;
+            rot_x_180 << 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1;
+            sensor_info_.camera[i].tf_world_to_camera = rot_x_180 * view_matrix;
+        }
     }
 }
 
-trifinger_cameras::TriCameraObservation
-PyBulletTriCameraDriver::get_observation()
+TriCameraInfo PyBulletTriCameraDriver::get_sensor_info()
+{
+    return sensor_info_;
+}
+
+TriCameraObservation PyBulletTriCameraDriver::get_observation()
 {
     time_series::Index robot_t =
         robot_data_->observation->newest_timeindex(false);

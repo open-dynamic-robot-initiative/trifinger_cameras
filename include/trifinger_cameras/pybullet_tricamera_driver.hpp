@@ -28,13 +28,21 @@ public:
         bool render_images = true,
         Settings settings = Settings());
 
-    // FIXME: Implement get_sensor_info()
+    /**
+     * @brief Get the camera parameters (image size and calibration
+     * coefficients).
+     *
+     * **Important:**  The calibration coefficients are only set if the driver
+     * is initialized with a calibration file (see constructor).  Otherwise,
+     * they will be empty.
+     */
+    virtual TriCameraInfo get_sensor_info() override;
 
     /**
      * @brief Get the latest observation from the three cameras
      * @return TricameraObservation
      */
-    trifinger_cameras::TriCameraObservation get_observation();
+    virtual trifinger_cameras::TriCameraObservation get_observation() override;
 
 private:
     //! @brief Python object to access cameras in pyBullet.
@@ -55,6 +63,9 @@ private:
 
     //! Number of robot time steps after which the next frame should be fetched.
     int frame_rate_in_robot_steps_;
+
+    //! Sensor info for the cameras.
+    TriCameraInfo sensor_info_ = {};
 };
 
 }  // namespace trifinger_cameras
