@@ -7,6 +7,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED on)
 # libraries need to be position independent for building Python modules
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# generate compile_commands.json by default (needed for LSP)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# stop build on first error
+string(APPEND CMAKE_CXX_FLAGS " -Wfatal-errors -Werror=return-type")
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
 # pybind11 needs to be first, otherwise other packages which also search for
@@ -78,7 +84,10 @@ target_link_libraries(camera_observations
 list(APPEND install_targets camera_observations)
 
 
-add_library(opencv_driver src/opencv_driver.cpp)
+add_library(opencv_driver
+    src/opencv_driver.cpp
+    src/camera_parameters.cpp
+)
 target_include_directories(opencv_driver PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
@@ -87,13 +96,17 @@ target_include_directories(opencv_driver PUBLIC
 target_link_libraries(opencv_driver
     ${OpenCV_LIBRARIES}
     robot_interfaces::robot_interfaces
+    serialization_utils::serialization_utils
     camera_observations
 )
 list(APPEND install_targets opencv_driver)
 
 
 if (${Pylon_FOUND})
-    add_library(pylon_driver src/pylon_driver.cpp)
+    add_library(pylon_driver
+        src/pylon_driver.cpp
+        src/camera_parameters.cpp
+    )
     target_include_directories(pylon_driver PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
@@ -105,6 +118,8 @@ if (${Pylon_FOUND})
         ${Pylon_LIBRARIES}
         fmt::fmt
         robot_interfaces::robot_interfaces
+        serialization_utils::serialization_utils
+        camera_calibration_parser
         camera_observations
         settings
     )
@@ -199,7 +214,10 @@ target_include_directories(camera_calibration_parser PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(camera_calibration_parser yaml_utils::yaml_utils)
+target_link_libraries(camera_calibration_parser
+    serialization_utils::serialization_utils
+    yaml_utils::yaml_utils
+)
 ament_target_dependencies(camera_calibration_parser
     sensor_msgs
 )
@@ -263,11 +281,12 @@ install_scripts(
     scripts/overlay_camera_stream.py
     scripts/overlay_real_and_rendered_images.py
     scripts/record_image_dataset.py
+    scripts/single_camera_backend.py
+    scripts/tricamera_backend.py
     scripts/tricamera_log_converter.py
     scripts/tricamera_log_viewer.py
     scripts/tricamera_monitor_rate.py
     scripts/tricamera_test_connection.py
-
     DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -7,5 +7,6 @@ disable = "C0330, C0326"
 module = [
     "cv2",
     "trifinger_cameras.*",
+    "signal_handler",
 ]
 ignore_missing_imports = true

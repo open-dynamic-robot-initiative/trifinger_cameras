@@ -142,3 +142,11 @@ Usage (saving the settings to a file "camera_settings.txt":
 .. code-block:: sh
 
    $ pylon_dump_camera_settings "device_user_id" > camera_settings.txt
+
+
+single_camera_backend / tricamera_backend
+=========================================
+
+Run a back end instance for a single camera / the TriCamera setup.  Multi-process sensor
+data is used so other processes can connect with a front end to acquire the images (see
+`demo_camera` / `demo_tricamera`).

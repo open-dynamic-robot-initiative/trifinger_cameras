@@ -6,16 +6,19 @@ as a non-real time livestream.
 Basically illustrates what objects to create to interact with the
 camera, and the available methods for that.
 """
+
 import argparse
+import pathlib
 import sys
 
 import cv2
+import numpy as np
 
 import trifinger_cameras
 from trifinger_cameras import utils
 
 
-def main() -> int:
+def main() -> int:  # noqa: D103
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument(
         "--pylon",
@@ -31,6 +34,20 @@ def main() -> int:
         """,
     )
     argparser.add_argument(
+        "--camera-info",
+        type=pathlib.Path,
+        metavar="<file>",
+        dest="camera_info_file",
+        help="Path to YAML file with camera calibration data.",
+    )
+    argparser.add_argument(
+        "--multi-process",
+        action="store_true",
+        help="""If set, run only front end with multi-process robot data.  Otherwise run
+            everything within a single process.
+        """,
+    )
+    argparser.add_argument(
         "--record",
         type=str,
         help="""Path to file in which camera data is recorded.""",
@@ -38,31 +55,54 @@ def main() -> int:
 
     args = argparser.parse_args()
 
-    camera_data = trifinger_cameras.camera.SingleProcessData()
-    # camera_data = trifinger_cameras.camera.MultiProcessData("cam", True, 10)
+    if args.multi_process:
+        # In multi-process case assume that the backend is running in a
+        # separate process and only set up the frontend here.
+        camera_data = trifinger_cameras.camera.MultiProcessData("camera", False)
+    else:
+        camera_data = trifinger_cameras.camera.SingleProcessData()
 
-    try:
-        if args.pylon:
-            camera_driver = trifinger_cameras.camera.PylonDriver(args.camera_id)
-        else:
-            camera_id = int(args.camera_id) if args.camera_id else 0
-            camera_driver = trifinger_cameras.camera.OpenCVDriver(camera_id)
-    except Exception as e:
-        print("Failed to initialise driver:", e)
-        return 1
+        try:
+            if args.pylon:
+                if args.camera_info_file:
+                    camera_driver = trifinger_cameras.camera.PylonDriver(
+                        args.camera_info_file
+                    )
+                else:
+                    camera_driver = trifinger_cameras.camera.PylonDriver(args.camera_id)
+            else:
+                camera_id = int(args.camera_id) if args.camera_id else 0
+                camera_driver = trifinger_cameras.camera.OpenCVDriver(camera_id)
+        except Exception as e:
+            print("Failed to initialise driver:", e)
+            return 1
 
-    camera_backend = trifinger_cameras.camera.Backend(  # noqa: F841
-        camera_driver, camera_data
-    )
+        camera_backend = trifinger_cameras.camera.Backend(  # noqa: F841
+            camera_driver, camera_data
+        )
+
     camera_frontend = trifinger_cameras.camera.Frontend(camera_data)
 
     if args.record:
         logger = trifinger_cameras.camera.Logger(camera_data, 10000)
         logger.start()
 
+    np.set_printoptions(precision=3, suppress=True)
+    print("--- Camera Info: ----------------------")
+    sinfo = camera_frontend.get_sensor_info()
+    print(f"fps: {sinfo.frame_rate_fps}")
+    print(f"width x height: {sinfo.image_width}x{sinfo.image_height}")
+    print(sinfo.camera_matrix)
+    print(sinfo.distortion_coefficients)
+    print(sinfo.tf_world_to_camera)
+    print("---------------------------------------")
+
     while True:
         observation = camera_frontend.get_latest_observation()
-        image = utils.convert_image(observation.image)
+        if args.pylon:
+            image = utils.convert_image(observation.image)
+        else:
+            image = observation.image
         window_name = "Image Stream"
         cv2.imshow(window_name, image)
 

@@ -8,13 +8,15 @@
 
 #include <robot_interfaces/sensors/sensor_driver.hpp>
 #include <trifinger_cameras/camera_observation.hpp>
+#include <trifinger_cameras/camera_parameters.hpp>
 
 namespace trifinger_cameras
 {
 /**
  * @brief Driver for interacting with any camera using OpenCV.
  */
-class OpenCVDriver : public robot_interfaces::SensorDriver<CameraObservation>
+class OpenCVDriver
+    : public robot_interfaces::SensorDriver<CameraObservation, CameraInfo>
 {
 public:
     OpenCVDriver(int device_id);

@@ -12,6 +12,8 @@
 #include <fmt/format.h>
 #include <opencv2/opencv.hpp>
 
+#include <trifinger_cameras/parse_yml.h>
+
 namespace trifinger_cameras
 {
 /**
@@ -112,11 +114,42 @@ void pylon_connect(std::string_view device_user_id,
     camera->MaxNumBuffer = 5;
 }
 
+PylonDriver::PylonDriver(bool downsample_images, Settings settings)
+    : settings_(settings.get_pylon_driver_settings()),
+      downsample_images_(downsample_images)
+{
+}
+
 PylonDriver::PylonDriver(const std::string& device_user_id,
                          bool downsample_images,
                          Settings settings)
-    : settings_(settings.get_pylon_driver_settings()),
-      downsample_images_(downsample_images)
+    : PylonDriver(downsample_images, settings)
+{
+    init(device_user_id);
+}
+
+PylonDriver::PylonDriver(const std::filesystem::path& camera_calibration_file,
+                         bool downsample_images,
+                         Settings settings)
+    : PylonDriver(downsample_images, settings)
+{
+    std::string camera_name;
+    if (!readCalibrationYml(
+            camera_calibration_file.string(), camera_name, camera_info_))
+    {
+        throw std::runtime_error(
+            fmt::format("Failed to read camera calibration file '{}'.",
+                        camera_calibration_file.string()));
+    }
+
+    // TODO: It would in theory be possible to set downsampling ratio based on
+    // image size defined in the calibration file.
+
+    fmt::print("Opening camera '{}'.\n", camera_name);
+    init(camera_name);
+}
+
+void PylonDriver::init(const std::string& device_user_id)
 {
     try
     {
@@ -127,6 +160,47 @@ PylonDriver::PylonDriver(const std::string& device_user_id,
         set_camera_configuration();
         camera_.StartGrabbing(Pylon::GrabStrategy_LatestImageOnly);
         format_converter_.OutputPixelFormat = Pylon::PixelType_BGR8packed;
+
+        GenApi::INodeMap& nodemap = camera_.GetNodeMap();
+
+        camera_info_.frame_rate_fps =
+            Pylon::CFloatParameter(nodemap, "AcquisitionFrameRate").GetValue();
+
+        int image_width = Pylon::CIntegerParameter(nodemap, "Width").GetValue();
+        int image_height =
+            Pylon::CIntegerParameter(nodemap, "Height").GetValue();
+        if (downsample_images_)
+        {
+            image_width /= 2;
+            image_height /= 2;
+        }
+
+        // Check if an image size is set in camera_info_ and raise error, in
+        // case it doesn't match with the size reported by the camera.
+        if (camera_info_.image_width != 0 and
+            camera_info_.image_width != static_cast<unsigned int>(image_width))
+        {
+            throw std::runtime_error(
+                fmt::format("Image width from calibration file ({}) does not "
+                            "match the one from the camera ({}).  You are "
+                            "likely using wrong calibration parameters\n",
+                            camera_info_.image_width,
+                            image_width));
+        }
+        if (camera_info_.image_height != 0 and
+            camera_info_.image_height !=
+                static_cast<unsigned int>(image_height))
+        {
+            throw std::runtime_error(
+                fmt::format("Image height from calibration file ({}) does not "
+                            "match the one from the camera ({}).  You are "
+                            "likely using wrong calibration parameters\n",
+                            camera_info_.image_height,
+                            image_height));
+        }
+
+        camera_info_.image_width = image_width;
+        camera_info_.image_height = image_height;
     }
     catch (const Pylon::GenericException& e)
     {
@@ -141,6 +215,11 @@ PylonDriver::~PylonDriver()
 {
     camera_.StopGrabbing();
     Pylon::PylonTerminate();
+}
+
+CameraInfo PylonDriver::get_sensor_info()
+{
+    return camera_info_;
 }
 
 CameraObservation PylonDriver::get_observation()

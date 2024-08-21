@@ -15,6 +15,11 @@
   [documentation](https://open-dynamic-robot-initiative.github.io/trifinger_cameras/doc/configuration.html)
 - Executable `tricamera_monitor_rate` for checking the actual frame rate (most meant for
   debugging and testing during development)
+- Executables `single_camera_backend` and `tricamera_backend` to run camera back ends in
+  a separate process (mostly for testing).  Also added `--multi-process` option to
+  `demo_camera.py` accordingly.
+- Implement `get_sensor_info()` for Pylon and PyBullet drivers.  See `demo_camera` and
+  `demo_tricamera` on how to use it.
 
 ### Removed
 - Obsolete script `verify_calibration.py`
