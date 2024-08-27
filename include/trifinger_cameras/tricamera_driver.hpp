@@ -65,8 +65,8 @@ public:
      * coefficients).
      *
      * **Important:**  The calibration coefficients are only set if the driver
-     * is initialized with a calibration file (see constructor).  Otherwise,
-     * they will be empty.
+     * is initialized with calibration files (see constructor).  Otherwise,
+     * they will be all zero.
      */
     virtual TriCameraInfo get_sensor_info() override;
 
