@@ -54,12 +54,16 @@ How to use the custom configuration
 ===================================
 
 To use the file, simply write the path to the environment variable
-``TRIFINGER_CAMERA_CONFIG``.
+``TRIFINGER_CAMERA_CONFIG``:
+
+.. code-block:: bash
+
+   export TRIFINGER_CAMERA_CONFIG="/path/to/config.toml"
 
 Alternatively, if you instantiate the :cpp:class:`~trifinger_cameras::PylonDriver` or
-:cpp:class:`~trifinger_cameras::TriCameraDriver` classes in your own code, you can create a
-:cpp:class:`~trifinger_cameras::Settings` instance (specify the path to the TOML file in the constructor)
-and pass this to the constructor of the driver class.
+:cpp:class:`~trifinger_cameras::TriCameraDriver` classes in your own code, you can
+create a :cpp:class:`~trifinger_cameras::Settings` instance (specify the path to the
+TOML file in the constructor) and pass this to the constructor of the driver class.
 
 
 .. _pylon_settings_file:

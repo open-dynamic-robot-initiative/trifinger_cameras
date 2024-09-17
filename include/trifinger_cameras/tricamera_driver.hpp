@@ -65,16 +65,16 @@ public:
      * coefficients).
      *
      * **Important:**  The calibration coefficients are only set if the driver
-     * is initialized with a calibration file (see constructor).  Otherwise,
-     * they will be empty.
+     * is initialized with calibration files (see constructor).  Otherwise,
+     * they will be all zero.
      */
-    virtual TriCameraInfo get_sensor_info() override;
+    TriCameraInfo get_sensor_info() override;
 
     /**
      * @brief Get the latest observation from the three cameras
      * @return TricameraObservation
      */
-    TriCameraObservation get_observation();
+    TriCameraObservation get_observation() override;
 
 private:
     std::chrono::time_point<std::chrono::system_clock> last_update_time_;

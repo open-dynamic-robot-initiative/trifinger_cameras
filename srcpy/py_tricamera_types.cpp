@@ -44,6 +44,7 @@ PYBIND11_MODULE(py_tricamera_types, m)
              pybind11::arg("camera_calibration_file_3"),
              pybind11::arg("downsample_images") = true)
         .def_readonly("rate", &TriCameraDriver::rate)
+        .def("get_sensor_info", &TriCameraDriver::get_sensor_info)
         .def("get_observation", &TriCameraDriver::get_observation);
 #endif
 
@@ -69,5 +70,6 @@ PYBIND11_MODULE(py_tricamera_types, m)
                             bool>(),
              pybind11::arg("robot_data"),
              pybind11::arg("render_images") = true)
+        .def("get_sensor_info", &PyBulletTriCameraDriver::get_sensor_info)
         .def("get_observation", &PyBulletTriCameraDriver::get_observation);
 }

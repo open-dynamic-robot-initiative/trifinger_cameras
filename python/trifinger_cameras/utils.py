@@ -1,13 +1,20 @@
 """Utility functions."""
 
+from __future__ import annotations
+
 import typing
 
 import cv2
 import numpy as np
+import tabulate
+
+
+if typing.TYPE_CHECKING:
+    from trifinger_cameras.py_tricamera_types import TriCameraInfo
 
 
 def rodrigues_to_matrix(rvec):
-    """Convert Rodrigues vector to homogeneous transformation matrix
+    """Convert Rodrigues vector to homogeneous transformation matrix.
 
     Args:
         rvec (array-like):  Rotation in Rodrigues format as returned by OpenCV.
@@ -79,3 +86,32 @@ def check_image_sharpness(
     edge_mean = np.mean(edge_image)
 
     return edge_mean, edge_image
+
+
+def print_tricamera_sensor_info(tricamera_info: TriCameraInfo) -> None:
+    """Pretty-print the sensor info struct of the TriCamera driver."""
+    camera_names = ["camera60", "camera180", "camera300"]
+
+    camera_info = [
+        (
+            info.frame_rate_fps,
+            f"{info.image_width}x{info.image_height}",
+            info.camera_matrix,
+            info.distortion_coefficients,
+            info.tf_world_to_camera,
+        )
+        for info in tricamera_info.camera
+    ]
+    # add headers
+    camera_info = [
+        ("fps", "resolution", "camera_matrix", "distortion", "tf_world_to_camera"),
+        *camera_info,
+    ]
+    # transpose the list for printing (so it's one column per camera)
+    camera_info = list(map(tuple, zip(*camera_info)))
+
+    with np.printoptions(precision=3, suppress=True):
+        print(
+            tabulate.tabulate(camera_info, headers=camera_names, tablefmt="pipe"),
+            "\n",
+        )

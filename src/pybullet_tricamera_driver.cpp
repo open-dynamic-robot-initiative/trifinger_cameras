@@ -86,12 +86,15 @@ PyBulletTriCameraDriver::PyBulletTriCameraDriver(
             sensor_info_.camera[i].image_width = width;
             sensor_info_.camera[i].image_height = height;
 
-            // if (py::hasattr(camera, "_original_camera_matrix"))
             if (py::isinstance(camera, mod_camera.attr("CalibratedCamera")))
             {
                 sensor_info_.camera[i].camera_matrix =
                     camera.attr("_original_camera_matrix")
                         .cast<Eigen::Matrix3d>();
+
+                sensor_info_.camera[i].distortion_coefficients =
+                    camera.attr("_distortion_coefficients")
+                        .cast<Eigen::Matrix<double, 1, 5>>();
             }
             else
             {
