@@ -335,5 +335,13 @@ endif()
 
 
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-ament_export_dependencies(yaml_utils sensor_msgs tomlplusplus fmt)
+ament_export_dependencies(
+    ament_index_cpp
+    fmt
+    robot_interfaces
+    sensor_msgs
+    serialization_utils
+    tomlplusplus
+    yaml_utils
+)
 ament_package(CONFIG_EXTRAS cmake/cfg_extras.cmake.in)
