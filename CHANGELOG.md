@@ -28,6 +28,7 @@
 - pybind11 build error on Ubuntu 22.04
 - Connecting to camera without specifying DeviceUserID was not working.  It now opens
   the first camera in the list of connected cameras if no ID is specified.
+- Export dependencies needed when using the `pylon_driver` library in an other package.
 
 ### Changed
 - `pylon_list_cameras`:  Keep stdout clean if there are no cameras.
