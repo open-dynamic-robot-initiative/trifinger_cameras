@@ -20,6 +20,7 @@
   `demo_camera.py` accordingly.
 - Implement `get_sensor_info()` for Pylon and PyBullet drivers.  See `demo_camera` and
   `demo_tricamera` on how to use it.
+- Executable `record_tricamera_log` for recording camera data for testing, etc.
 
 ### Removed
 - Obsolete script `verify_calibration.py`
