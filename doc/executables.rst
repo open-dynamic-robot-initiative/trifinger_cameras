@@ -150,3 +150,13 @@ single_camera_backend / tricamera_backend
 Run a back end instance for a single camera / the TriCamera setup.  Multi-process sensor
 data is used so other processes can connect with a front end to acquire the images (see
 `demo_camera` / `demo_tricamera`).
+
+
+record_tricamera_log
+====================
+
+Run the TriCamera backend and record data using the logger.  Resulting logs can, for
+example, be viewed using ``tricamera_log_viewer``.
+
+Note that the logger buffer is limited to 60 seconds by default.  If the buffer is full,
+the logger will stop recording.

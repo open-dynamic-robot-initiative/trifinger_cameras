@@ -281,6 +281,7 @@ install_scripts(
     scripts/overlay_camera_stream.py
     scripts/overlay_real_and_rendered_images.py
     scripts/record_image_dataset.py
+    scripts/record_tricamera_log.py
     scripts/single_camera_backend.py
     scripts/tricamera_backend.py
     scripts/tricamera_log_converter.py
