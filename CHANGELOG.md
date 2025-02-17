@@ -21,6 +21,7 @@
 - Implement `get_sensor_info()` for Pylon and PyBullet drivers.  See `demo_camera` and
   `demo_tricamera` on how to use it.
 - Executable `record_tricamera_log` for recording camera data for testing, etc.
+- Executable `tricamera_log_extract` for extracting still images from a camera log file.
 
 ### Removed
 - Obsolete script `verify_calibration.py`
