@@ -160,3 +160,33 @@ example, be viewed using ``tricamera_log_viewer``.
 
 Note that the logger buffer is limited to 60 seconds by default.  If the buffer is full,
 the logger will stop recording.
+
+
+tricamera_log_extract
+=====================
+
+Extract the individual frames from a TriCamera log file.
+
+Basic usage:
+
+.. code-block:: sh
+
+   tricamera_log_extract <camera data file> <output directory>
+
+Images will be saved in the output directory using the following structure:
+
+::
+
+    output_directory
+    ├── 0001
+    │   ├── camera180.png
+    │   ├── camera300.png
+    │   └── camera60.png
+    ├── 0002
+    │   ├── camera180.png
+    │   ├── camera300.png
+    │   └── camera60.png
+    ...
+
+
+See ``--help`` for available options.

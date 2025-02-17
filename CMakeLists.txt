@@ -285,6 +285,7 @@ install_scripts(
     scripts/single_camera_backend.py
     scripts/tricamera_backend.py
     scripts/tricamera_log_converter.py
+    scripts/tricamera_log_extract.py
     scripts/tricamera_log_viewer.py
     scripts/tricamera_monitor_rate.py
     scripts/tricamera_test_connection.py
