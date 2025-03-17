@@ -49,10 +49,10 @@ def read_hdf5(filename: pathlib.Path) -> Generator[tuple[int, np.ndarray]]:
     import h5py
 
     with h5py.File(filename, "r") as h5:
-        if h5.attrs.get("magic") != 0x3CDA7A00:
+        if h5.attrs.get("magic") != trifinger_cameras.TRICAMERA_LOG_MAGIC:
             msg = "Input file doesn't seem to be a TriCamera log file (bad magic byte)."
             raise ValueError(msg)
-        if h5.attrs["format_version"] != 1:
+        if h5.attrs["format_version"] not in (1, 2):
             msg = f"Unsupported file format version {h5.attrs['format_version']}"
             raise ValueError(msg)
 
@@ -83,7 +83,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    window_title = "camera 60 | camera 180 | camera300"
+    window_title = " | ".join(trifinger_cameras.CAMERA_NAMES)
     read_func = (
         read_hdf5 if args.filename.suffix in (".h5", ".hdf5") else read_sensor_log
     )

@@ -5,28 +5,38 @@ import argparse
 import pathlib
 import sys
 
-import cv2
 import h5py
 import numpy as np
 
-import trifinger_cameras
-from trifinger_cameras import utils
-
-CAMERA_NAMES = ("camera60", "camera180", "camera300")
+from trifinger_cameras import CAMERA_NAMES, TRICAMERA_LOG_MAGIC, tricamera
+from trifinger_cameras.camera_calibration_file import CameraCalibrationFile
 
 
 def main() -> int:
     """Main entry point of the script."""
     argparser = argparse.ArgumentParser(description=__doc__)
     argparser.add_argument(
-        "logfile",
+        "--logfile",
+        "-l",
         type=pathlib.Path,
+        required=True,
         help="Path to the log file.",
     )
     argparser.add_argument(
-        "outfile",
+        "--outfile",
+        "-o",
         type=pathlib.Path,
+        required=True,
         help="Path to the output hdf5 file.",
+    )
+    # Add arguments for calibration files
+    argparser.add_argument(
+        "--camera-info",
+        "-c",
+        type=pathlib.Path,
+        nargs=3,
+        required=True,
+        help="Paths to the three camera calibration YAML files.",
     )
     args = argparser.parse_args()
 
@@ -38,21 +48,67 @@ def main() -> int:
         print("Output file already exists.  Exiting.", file=sys.stderr)
         return 1
 
-    log_reader = trifinger_cameras.tricamera.LogReader(str(args.logfile))
+    # Load calibration files
+    camera_params = []
+    for calib_file in args.camera_info:
+        if not calib_file.is_file():
+            print(f"Calibration file {calib_file} does not exist.", file=sys.stderr)
+            return 1
+        camera_params.append(CameraCalibrationFile(calib_file))
+
+    # Verify camera names match expected order
+    for param, expected_name in zip(camera_params, CAMERA_NAMES):
+        if param["camera_name"] != expected_name:
+            print(
+                f"Expected camera {expected_name} but got {param['camera_name']}",
+                file=sys.stderr,
+            )
+            return 1
+
+    log_reader = tricamera.LogReader(str(args.logfile))
 
     n_frames = len(log_reader.data)
     assert n_frames > 0, "No frames found in log file."
 
     img_shape = log_reader.data[0].cameras[0].image.shape
 
+    # sanity check that the image size matches with camera info files
+    for i, params in enumerate(camera_params):
+        if (
+            params["image_width"] != img_shape[1]
+            or params["image_height"] != img_shape[0]
+        ):
+            print(
+                f"Image size mismatch for camera {CAMERA_NAMES[i]}:"
+                f" expected {img_shape[1]}x{img_shape[0]} (based on camera info) but"
+                f" got {params['image_width']}x{params['image_height']}",
+                file=sys.stderr,
+            )
+            return 1
+
     with h5py.File(args.outfile, "w") as h5:
         # create datasets for images and timestamps
         h5.create_dataset("camera_names", data=[name.encode() for name in CAMERA_NAMES])
-        h5.attrs["magic"] = 0x3CDA7A00
-        h5.attrs["format_version"] = 1
+        h5.attrs["magic"] = TRICAMERA_LOG_MAGIC
+        h5.attrs["format_version"] = 2
         h5.attrs["num_cameras"] = len(CAMERA_NAMES)
         h5.attrs["image_width"] = img_shape[1]
         h5.attrs["image_height"] = img_shape[0]
+
+        # Add camera calibration parameters
+        calib_group = h5.create_group("camera_info")
+        for i, params in enumerate(camera_params):
+            cam_group = calib_group.create_group(CAMERA_NAMES[i])
+            cam_group.create_dataset(
+                "camera_matrix", data=params.get_array("camera_matrix")
+            )
+            cam_group.create_dataset(
+                "distortion_coefficients",
+                data=params.get_array("distortion_coefficients"),
+            )
+            cam_group.create_dataset(
+                "tf_world_to_camera", data=params.get_array("tf_world_to_camera")
+            )
 
         h5.create_dataset(
             "images",
