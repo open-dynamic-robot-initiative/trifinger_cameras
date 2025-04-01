@@ -5,14 +5,17 @@ Calibrates the cameras based on a set of images recorded with the TriFingerPro
 calibration board holder.
 """
 
-from trifinger_cameras.charuco_board_handler import CharucoBoardHandler
-import trifinger_cameras.utils as utils
+from __future__ import annotations
+
 import argparse
-import numpy as np
-import cv2
-import yaml
 import os
-import typing
+
+import cv2
+import numpy as np
+from ruamel.yaml import YAML
+
+from trifinger_cameras import utils
+from trifinger_cameras.charuco_board_handler import CharucoBoardHandler
 
 
 BOARD_SIZE_X = 5
@@ -31,8 +34,8 @@ class CameraParameters:
     tf_world_to_camera_std: np.ndarray
 
 
-def get_image_files(data_dir: str, camera_name: str) -> typing.List[str]:
-    image_paths: typing.List[str] = []
+def get_image_files(data_dir: str, camera_name: str) -> list[str]:
+    image_paths: list[str] = []
 
     # We expect image directories 0001 to 0036
     filename = camera_name + ".png"
@@ -49,16 +52,15 @@ def get_image_files(data_dir: str, camera_name: str) -> typing.List[str]:
 
 
 def calibrate_intrinsic_parameters(
-    image_files, calibration_results_file, visualize=False
-):
+    image_files: list[str], visualize: bool = False
+) -> tuple[np.ndarray, np.ndarray]:
     """Calibrate intrinsic parameters of the camera given different images
     taken for the Charuco board from different views, the resulting parameters
     are saved to the provided filename.
 
     Args:
-        image_files (list):  List of calibration image files.
-        calibration_results_file (str):  filepath that will be used to write
-        the calibration results in.
+        image_files:  List of calibration image files.
+        visualize:  If true, show visualization of the board detection.
     """
     handler = CharucoBoardHandler(
         BOARD_SIZE_X, BOARD_SIZE_Y, BOARD_SQUARE_SIZE, BOARD_MARKER_SIZE
@@ -67,31 +69,16 @@ def calibrate_intrinsic_parameters(
     camera_matrix, dist_coeffs, error = handler.calibrate(
         image_files, visualize=visualize
     )
-    camera_info = dict()
-    camera_info["camera_matrix"] = dict()
-    camera_info["camera_matrix"]["rows"] = 3
-    camera_info["camera_matrix"]["cols"] = 3
-    camera_info["camera_matrix"]["data"] = camera_matrix.flatten().tolist()
-    camera_info["distortion_coefficients"] = dict()
-    camera_info["distortion_coefficients"]["rows"] = 1
-    camera_info["distortion_coefficients"]["cols"] = 5
-    camera_info["distortion_coefficients"]["data"] = dist_coeffs.flatten().tolist()
 
-    with open(calibration_results_file, "w") as outfile:
-        yaml.dump(
-            camera_info,
-            outfile,
-            default_flow_style=False,
-        )
     return camera_matrix, dist_coeffs
 
 
 def calibrate_mean_extrinsic_parameters(
-    camera_matrix,
-    dist_coeffs,
-    image_files,
-    impose_cube=True,
-):
+    camera_matrix: np.ndarray,
+    dist_coeffs: np.ndarray,
+    image_files: list[str],
+    impose_cube: bool = True,
+) -> CameraParameters:
     """Calibrate extrinsic parameters of the camera.
 
     Calibrate extrinsic parameters given several images taken of the Charuco
@@ -101,13 +88,12 @@ def calibrate_mean_extrinsic_parameters(
 
     Args:
         camera_matrix, dist_coeffs:  output of the intrinsic calibration
-            (either read from file or directly obtained from
-        intrinsic calibration function.
-        image_files (list): list of image files.
-        taken for the Charuco board centered at (0, 0, 0).
-        to write the extrinsic calibration results in.
-        impose_cube (bool): boolean whether to output a virtual cube
-        imposed on the first square of the board or not.
+            (either read from file or directly obtained from intrinsic calibration
+            function).
+        image_files: list of image files.  taken for the Charuco board centered at
+            (0, 0, 0).  to write the extrinsic calibration results in.
+        impose_cube: boolean whether to output a virtual cube imposed on the first
+            square of the board or not.
 
     Returns:
         The camera parameters including the camera pose.
@@ -124,7 +110,6 @@ def calibrate_mean_extrinsic_parameters(
 
     camera_params = CameraParameters()
 
-    ind = 0
     pose_matrix = np.zeros((len(image_files), 4, 4))
 
     for i, filename in enumerate(image_files):
@@ -188,13 +173,10 @@ def calibrate_mean_extrinsic_parameters(
         rvecW = cv2.Rodrigues(np.matmul(cv2.Rodrigues(rvec)[0], np.matmul(zMat, xMat)))[
             0
         ]
-        #        embed()
 
-        pose_matrix[ind, 0:4, 0:4] = utils.rodrigues_to_matrix(rvecW)
-        pose_matrix[ind, 0:3, 3] = tvecW
-        pose_matrix[ind, 3, 3] = 1
-
-        ind += 1
+        pose_matrix[i, 0:4, 0:4] = utils.rodrigues_to_matrix(rvecW)
+        pose_matrix[i, 0:3, 3] = tvecW
+        pose_matrix[i, 3, 3] = 1
 
         if impose_cube:
             new_object_points = (
@@ -231,7 +213,7 @@ def calibrate_mean_extrinsic_parameters(
             world_origin_points = world_origin_points + Tvec
 
             # cube
-            point_pairs = (
+            cube_point_pairs = (
                 (0, 4),
                 (1, 5),
                 (2, 6),
@@ -255,17 +237,17 @@ def calibrate_mean_extrinsic_parameters(
                 dist_coeffs,
             )
 
-            for p1, p2 in point_pairs:
+            for p1, p2 in cube_point_pairs:
                 cv2.line(
                     img,
-                    tuple(imgpoints[p1, 0]),
-                    tuple(imgpoints[p2, 0]),
+                    tuple(imgpoints[p1, 0].astype(int)),
+                    tuple(imgpoints[p2, 0].astype(int)),
                     [200, 200, 0],
                     thickness=2,
                 )
 
             # world origin
-            point_pairs = (
+            origin_frame_point_pairs = (
                 (0, 1),
                 (0, 2),
                 (0, 3),
@@ -279,7 +261,7 @@ def calibrate_mean_extrinsic_parameters(
                 dist_coeffs,
             )
 
-            for p1, p2 in point_pairs:
+            for p1, p2 in origin_frame_point_pairs:
                 cv2.line(
                     img,
                     tuple(imgpoints[p1, 0].astype(int)),
@@ -308,7 +290,7 @@ def calibrate_mean_extrinsic_parameters(
     return camera_params
 
 
-def save_parameter_file(params: CameraParameters, filename: str):
+def save_parameter_file(params: CameraParameters, filename: str) -> None:
     # save all the data
     calibration_data = {
         "camera_name": params.camera_name,
@@ -319,36 +301,45 @@ def save_parameter_file(params: CameraParameters, filename: str):
     calibration_data["camera_matrix"] = {
         "rows": 3,
         "cols": 3,
+        "dt": "d",
         "data": params.camera_matrix.flatten().tolist(),
     }
 
     calibration_data["distortion_coefficients"] = {
         "rows": 1,
         "cols": 5,
+        "dt": "d",
         "data": params.dist_coeffs.flatten().tolist(),
     }
 
     calibration_data["tf_world_to_camera"] = {
         "rows": 4,
         "cols": 4,
+        "dt": "d",
         "data": params.tf_world_to_camera.flatten().tolist(),
     }
 
     calibration_data["tf_world_to_camera_std"] = {
         "rows": 4,
         "cols": 4,
+        "dt": "d",
         "data": params.tf_world_to_camera_std.flatten().tolist(),
     }
 
+    ryaml = YAML()
+    ryaml.version = (1, 1)  # type: ignore[assignment]
+    ryaml.explicit_start = True  # type: ignore[assignment]
+    # indent lists in opencv-compatible way
+    ryaml.indent(offset=2)
+
     with open(filename, "w") as outfile:
-        yaml.dump(
+        ryaml.dump(
             calibration_data,
             outfile,
-            default_flow_style=False,
         )
 
 
-def main():
+def main() -> None:
     """Execute an action depending on arguments passed by the user."""
     parser = argparse.ArgumentParser(description=__doc__)
 
@@ -405,16 +396,16 @@ def main():
 
     if args.intrinsic_file:
         with open(args.intrinsic_file) as file:
-            calibration_data = yaml.safe_load(file)
+            calibration_data = YAML(typ="safe").load(file)
 
-        def config_matrix(data):
+        def config_matrix(data: dict) -> np.ndarray:
             return np.array(data["data"]).reshape(data["rows"], data["cols"])
 
         camera_matrix = config_matrix(calibration_data["camera_matrix"])
         dist_coeffs = config_matrix(calibration_data["distortion_coefficients"])
     else:
         camera_matrix, dist_coeffs = calibrate_intrinsic_parameters(
-            image_files, output_file_full, args.visualize
+            image_files, args.visualize
         )
 
     camera_params = calibrate_mean_extrinsic_parameters(

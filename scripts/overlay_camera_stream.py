@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-"""
+"""Overlay an image on top of the camera stream."""
 import argparse
 import cv2
 

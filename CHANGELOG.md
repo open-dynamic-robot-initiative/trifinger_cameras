@@ -34,6 +34,7 @@
 
 ### Changed
 - `pylon_list_cameras`:  Keep stdout clean if there are no cameras.
+- Camera calibration YAML files are now compatible with OpenCVs YAML parser.
 
 
 ## [1.0.0] - 2022-06-28

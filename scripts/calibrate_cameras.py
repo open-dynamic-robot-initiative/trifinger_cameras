@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Script for generating the calibration data for the cameras and verifying the
- output.
+output.
 """
 
 from trifinger_cameras.charuco_board_handler import CharucoBoardHandler
