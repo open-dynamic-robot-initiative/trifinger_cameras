@@ -258,8 +258,8 @@ def calibrate_mean_extrinsic_parameters(
             for p1, p2 in point_pairs:
                 cv2.line(
                     img,
-                    tuple(imgpoints[p1, 0]),
-                    tuple(imgpoints[p2, 0]),
+                    tuple(imgpoints[p1, 0].astype(int)),
+                    tuple(imgpoints[p2, 0].astype(int)),
                     [200, 200, 0],
                     thickness=2,
                 )
