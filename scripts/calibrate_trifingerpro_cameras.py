@@ -12,7 +12,6 @@ import os
 
 import cv2
 import numpy as np
-import yaml
 from ruamel.yaml import YAML
 
 from trifinger_cameras import utils
@@ -397,7 +396,7 @@ def main() -> None:
 
     if args.intrinsic_file:
         with open(args.intrinsic_file) as file:
-            calibration_data = yaml.safe_load(file)
+            calibration_data = YAML(typ="safe").load(file)
 
         def config_matrix(data: dict) -> np.ndarray:
             return np.array(data["data"]).reshape(data["rows"], data["cols"])
