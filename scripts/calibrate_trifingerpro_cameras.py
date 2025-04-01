@@ -13,6 +13,7 @@ import os
 import cv2
 import numpy as np
 import yaml
+from ruamel.yaml import YAML
 
 from trifinger_cameras import utils
 from trifinger_cameras.charuco_board_handler import CharucoBoardHandler
@@ -301,32 +302,41 @@ def save_parameter_file(params: CameraParameters, filename: str) -> None:
     calibration_data["camera_matrix"] = {
         "rows": 3,
         "cols": 3,
+        "dt": "d",
         "data": params.camera_matrix.flatten().tolist(),
     }
 
     calibration_data["distortion_coefficients"] = {
         "rows": 1,
         "cols": 5,
+        "dt": "d",
         "data": params.dist_coeffs.flatten().tolist(),
     }
 
     calibration_data["tf_world_to_camera"] = {
         "rows": 4,
         "cols": 4,
+        "dt": "d",
         "data": params.tf_world_to_camera.flatten().tolist(),
     }
 
     calibration_data["tf_world_to_camera_std"] = {
         "rows": 4,
         "cols": 4,
+        "dt": "d",
         "data": params.tf_world_to_camera_std.flatten().tolist(),
     }
 
+    ryaml = YAML()
+    ryaml.version = (1, 1)  # type: ignore[assignment]
+    ryaml.explicit_start = True  # type: ignore[assignment]
+    # indent lists in opencv-compatible way
+    ryaml.indent(offset=2)
+
     with open(filename, "w") as outfile:
-        yaml.dump(
+        ryaml.dump(
             calibration_data,
             outfile,
-            default_flow_style=False,
         )
 
 
