@@ -52,7 +52,7 @@ def get_image_files(data_dir: str, camera_name: str) -> list[str]:
 
 
 def calibrate_intrinsic_parameters(
-    image_files: list[str], calibration_results_file: str, visualize: bool = False
+    image_files: list[str], visualize: bool = False
 ) -> tuple[np.ndarray, np.ndarray]:
     """Calibrate intrinsic parameters of the camera given different images
     taken for the Charuco board from different views, the resulting parameters
@@ -60,8 +60,6 @@ def calibrate_intrinsic_parameters(
 
     Args:
         image_files:  List of calibration image files.
-        calibration_results_file:  filepath that will be used to write the calibration
-            results in.
         visualize:  If true, show visualization of the board detection.
     """
     handler = CharucoBoardHandler(
@@ -71,23 +69,7 @@ def calibrate_intrinsic_parameters(
     camera_matrix, dist_coeffs, error = handler.calibrate(
         image_files, visualize=visualize
     )
-    camera_info: dict = {}
-    camera_info["camera_matrix"] = {}
-    camera_info["camera_matrix"]["rows"] = 3
-    camera_info["camera_matrix"]["cols"] = 3
-    camera_info["camera_matrix"]["data"] = camera_matrix.flatten().tolist()
-    camera_info["distortion_coefficients"] = {}
-    camera_info["distortion_coefficients"]["rows"] = 1
-    camera_info["distortion_coefficients"]["cols"] = 5
-    camera_info["distortion_coefficients"]["data"] = dist_coeffs.flatten().tolist()
 
-    # TODO: do we need to save here? won't this be overwritten later anyway?
-    with open(calibration_results_file, "w") as outfile:
-        yaml.dump(
-            camera_info,
-            outfile,
-            default_flow_style=False,
-        )
     return camera_matrix, dist_coeffs
 
 
@@ -95,7 +77,7 @@ def calibrate_mean_extrinsic_parameters(
     camera_matrix: np.ndarray,
     dist_coeffs: np.ndarray,
     image_files: list[str],
-    impose_cube: bool=True,
+    impose_cube: bool = True,
 ) -> CameraParameters:
     """Calibrate extrinsic parameters of the camera.
 
@@ -414,7 +396,7 @@ def main() -> None:
         dist_coeffs = config_matrix(calibration_data["distortion_coefficients"])
     else:
         camera_matrix, dist_coeffs = calibrate_intrinsic_parameters(
-            image_files, output_file_full, args.visualize
+            image_files, args.visualize
         )
 
     camera_params = calibrate_mean_extrinsic_parameters(
