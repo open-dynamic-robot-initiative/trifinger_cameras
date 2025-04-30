@@ -70,6 +70,17 @@ def read_hdf5(filename: pathlib.Path) -> Generator[tuple[int, np.ndarray]]:
             yield interval, img
 
 
+def indicate_clipping(image: np.ndarray) -> np.ndarray:
+    """Set clipped pixels to pure red."""
+    # image = image.copy()
+
+    # set clipped pixels to pure red
+    image[image[:, :, 0] == 255] = [0, 0, 255]
+    image[image[:, :, 1] == 255] = [0, 0, 255]
+    image[image[:, :, 2] == 255] = [0, 0, 255]
+    return image
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -80,6 +91,11 @@ def main() -> None:
     parser.add_argument("--speed", type=float, default=1.0, help="Playback speed.")
     parser.add_argument(
         "--skip", type=int, default=0, metavar="n", help="Skip the first n frames."
+    )
+    parser.add_argument(
+        "--indicate-clipping",
+        action="store_true",
+        help="Visualize clipped pixels by setting them to pure red.",
     )
     args = parser.parse_args()
 
@@ -94,6 +110,10 @@ def main() -> None:
             frame_number += 1
             if frame_number <= args.skip:
                 continue
+
+            if args.indicate_clipping:
+                image = indicate_clipping(image)
+
             cv2.putText(
                 image,
                 f"Frame {frame_number}",
