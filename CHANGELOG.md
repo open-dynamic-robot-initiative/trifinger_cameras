@@ -22,6 +22,12 @@
   `demo_tricamera` on how to use it.
 - Executable `record_tricamera_log` for recording camera data for testing, etc.
 - Executable `tricamera_log_extract` for extracting still images from a camera log file.
+- Executable `tricamera_log_to_hdf5` to convert recorded log files from the native
+  format to HDF5 (which can easily be read without needing to depend on TriFinger
+  packages).  Extend the `tricamera_log_viewer` to be able to read those HDF5 files for
+  viewing.
+- Add clipping indicator to `tricamera_log_viewer` (meant as an aid to find good
+  exposure settings for the cameras).
 
 ### Removed
 - Obsolete script `verify_calibration.py`
