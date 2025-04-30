@@ -12,7 +12,7 @@ import cv2
 import numpy as np
 
 import trifinger_cameras
-from trifinger_cameras import utils
+from trifinger_cameras import hdf5, utils
 
 
 def read_sensor_log(filename: pathlib.Path) -> Generator[tuple[int, np.ndarray]]:
@@ -49,12 +49,7 @@ def read_hdf5(filename: pathlib.Path) -> Generator[tuple[int, np.ndarray]]:
     import h5py
 
     with h5py.File(filename, "r") as h5:
-        if h5.attrs.get("magic") != trifinger_cameras.TRICAMERA_LOG_MAGIC:
-            msg = "Input file doesn't seem to be a TriCamera log file (bad magic byte)."
-            raise ValueError(msg)
-        if h5.attrs["format_version"] not in (1, 2):
-            msg = f"Unsupported file format version {h5.attrs['format_version']}"
-            raise ValueError(msg)
+        hdf5.verify_tricamera_hdf5(h5, supported_formats=(1, 2))
 
         timestamps = h5["timestamps"]
         # determine rate based on first and last time stamp
