@@ -54,6 +54,16 @@ PYBIND11_MODULE(py_camera_types, m)
                        &CameraObservation::timestamp,
                        "Timestamp when the image was acquired.");
 
+    pybind11::class_<CameraParameters>(m, "CameraParameters")
+        .def(pybind11::init<>())
+        .def_readwrite("image_width", &CameraInfo::image_width)
+        .def_readwrite("image_height", &CameraInfo::image_height)
+        .def_readwrite("camera_matrix", &CameraParameters::camera_matrix)
+        .def_readwrite("distortion_coefficients",
+                       &CameraParameters::distortion_coefficients)
+        .def_readwrite("tf_world_to_camera",
+                       &CameraParameters::tf_world_to_camera);
+
     pybind11::class_<CameraInfo>(m, "CameraInfo")
         .def(pybind11::init<>())
         .def_readwrite("frame_rate_fps", &CameraInfo::frame_rate_fps)
