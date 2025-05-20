@@ -305,7 +305,7 @@ install(
 # Tests
 if (BUILD_TESTING)
     find_package(ament_cmake_gmock REQUIRED)
-    find_package(ament_cmake_nose REQUIRED)
+    find_package(ament_cmake_pytest REQUIRED)
 
     # install files that are used by the tests
     install(FILES tests/camera_calib.yml
@@ -330,8 +330,8 @@ if (BUILD_TESTING)
         camera_observations
     )
 
-    ament_add_nose_test(test_utils tests/test_utils.py)
-    ament_add_nose_test(test_camera_calibration_file
+    ament_add_pytest_test(test_utils tests/test_utils.py)
+    ament_add_pytest_test(test_camera_calibration_file
         tests/test_camera_calibration_file.py)
 endif()
 
