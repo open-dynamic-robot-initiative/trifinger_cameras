@@ -33,7 +33,7 @@
     <exec_depend>python-opencv</exec_depend>
 
     <test_depend>ament_cmake_gmock</test_depend>
-    <test_depend>ament_cmake_nose</test_depend>
+    <test_depend>ament_cmake_pytest</test_depend>
     <test_depend>ament_index_python</test_depend>
 
     <export>
