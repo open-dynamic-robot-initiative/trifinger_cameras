@@ -19,8 +19,10 @@ namespace trifinger_cameras
  */
 struct CameraObservation
 {
-    static constexpr size_t width = 270;
-    static constexpr size_t height = 270;
+    // image size needs to be hard-coded here for shared memory time series to
+    // work correctly (serialized size must be fixed).
+    static constexpr size_t width = 540;
+    static constexpr size_t height = 540;
 
     cv::Mat image;
     double timestamp;

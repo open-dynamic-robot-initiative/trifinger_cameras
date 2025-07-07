@@ -58,12 +58,11 @@ public:
      *
      * @param device_user_id "DeviceUserID" of the camera.  Pass empty string to
      * connect to first camera found (useful if only one camera is connected).
-     * @param downsample_images If set to true (default), images are downsampled
-     *     to half their original size.
+     * @param downsample_images Not supported anymore.  Must be to ``false``.
      * @param settings Settings for the camera.
      */
     PylonDriver(const std::string& device_user_id,
-                bool downsample_images = true,
+                bool downsample_images = false,
                 Settings settings = Settings());
 
     /**
@@ -75,26 +74,14 @@ public:
      * get_sensor_info.
      *
      * @param camera_calibration_file Path to the camera calibration file.
-     * @param downsample_images If set to true (default), images are downsampled
-     *     to half their original size.
+     * @param downsample_images Not supported anymore.  Must be to ``false``.
      * @param settings Settings for the camera.
      */
     PylonDriver(const std::filesystem::path& camera_calibration_file,
-                bool downsample_images = true,
+                bool downsample_images = false,
                 Settings settings = Settings());
 
     ~PylonDriver();
-
-    /**
-     * @brief Downsample raw Bayer pattern by factor 2.
-     *
-     * Downsample a raw image by factor two, preserving the Bayer pattern.
-     *
-     * @param image Original image.
-     *
-     * @return Downsampled image.
-     */
-    static cv::Mat downsample_raw_image(const cv::Mat& image);
 
     /**
      * @brief Get the camera parameters (image size and calibration
@@ -117,15 +104,13 @@ private:
     std::shared_ptr<const PylonDriverSettings> settings_;
     trifinger_cameras::CameraInfo camera_info_ = {};
     std::string device_user_id_;
-    const bool downsample_images_;
     Pylon::PylonAutoInitTerm auto_init_term_;
     Pylon::CInstantCamera camera_;
     Pylon::CImageFormatConverter format_converter_;
 
     /**
      * @brief Base constructor to be called by public constructors.
-     * @param downsample_images If set to true (default), images are downsampled
-     *     to half their original size.
+     * @param downsample_images Not supported anymore.  Must be to ``false``.
      * @param settings Settings for the camera.
      */
     PylonDriver(bool downsample_images, Settings settings);

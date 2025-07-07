@@ -31,6 +31,7 @@
 
 ### Removed
 - Obsolete script `verify_calibration.py`
+- Option to downsample images inside PylonDriver (see also "Changed" section).
 
 ### Fixed
 - pybind11 build error on Ubuntu 22.04
@@ -41,6 +42,9 @@
   ignore the configured camera rate and instead to run at full speed.
 
 ### Changed
+- BREAKING: The images provided by PylonDriver are not downsampled anymore.  They are
+  now always the full resolution of 540x540 px.  The corresponding argument of the
+  driver class is kept for now but will throw an exception when set to `true`.
 - `pylon_list_cameras`:  Keep stdout clean if there are no cameras.
 - Camera calibration YAML files are now compatible with OpenCVs YAML parser.
 

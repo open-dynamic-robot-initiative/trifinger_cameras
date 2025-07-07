@@ -39,10 +39,10 @@ PYBIND11_MODULE(py_camera_types, m)
                                                                   "PylonDriver")
         .def(pybind11::init<const std::string&, bool>(),
              pybind11::arg("device_user_id"),
-             pybind11::arg("downsample_images") = true)
+             pybind11::arg("downsample_images") = false)
         .def(pybind11::init<const std::filesystem::path&, bool>(),
              pybind11::arg("camera_calibration_file"),
-             pybind11::arg("downsample_images") = true)
+             pybind11::arg("downsample_images") = false)
         .def("get_sensor_info", &PylonDriver::get_sensor_info)
         .def("get_observation", &PylonDriver::get_observation);
 #endif

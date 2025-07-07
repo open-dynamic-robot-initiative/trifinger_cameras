@@ -68,7 +68,7 @@ PyBulletTriCameraDriver::PyBulletTriCameraDriver(
         // cameras_ =
         // mod_camera.attr("create_trifinger_camera_array_from_config")(
         //   pathlib.attr("Path")("/etc/trifingerpro"),
-        //   "camera{id}_cropped_and_downsampled.yml");
+        //   "camera{id}_cropped.yml");
 
         // fill the sensor_info_ structure for all three cameras.
         for (size_t i = 0; i < 3; i++)
