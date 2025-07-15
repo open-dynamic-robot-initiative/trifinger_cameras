@@ -8,6 +8,7 @@
 #include <trifinger_cameras/settings.hpp>
 #include <trifinger_cameras/tricamera_driver.hpp>
 
+#include <mutex>
 #include <thread>
 
 namespace trifinger_cameras
@@ -47,11 +48,23 @@ TriCameraInfo TriCameraDriver::get_sensor_info()
 
 TriCameraObservation TriCameraDriver::get_observation()
 {
+    // initialize last_update_time_ on first call
+    static std::once_flag first_call;
+    std::call_once(first_call,
+                   [this]()
+                   {
+                       // set it to now - rate so that the first call is
+                       // executed immediately
+                       last_update_time_ =
+                           std::chrono::system_clock::now() - this->rate;
+                   });
+
     last_update_time_ += this->rate;
     std::this_thread::sleep_until(last_update_time_);
 
     TriCameraObservation tricam_obs;
 
+    // TODO: try to grab observations in parallel for better sync
     tricam_obs.cameras[0] = camera1_.get_observation();
     tricam_obs.cameras[1] = camera2_.get_observation();
     tricam_obs.cameras[2] = camera3_.get_observation();

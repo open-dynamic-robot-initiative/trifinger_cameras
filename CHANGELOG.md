@@ -37,6 +37,8 @@
 - Connecting to camera without specifying DeviceUserID was not working.  It now opens
   the first camera in the list of connected cameras if no ID is specified.
 - Export dependencies needed when using the `pylon_driver` library in an other package.
+- Fixed timing issue in `TriCameraDriver`, which resulted in the first iterations to
+  ignore the configured camera rate and instead to run at full speed.
 
 ### Changed
 - `pylon_list_cameras`:  Keep stdout clean if there are no cameras.
