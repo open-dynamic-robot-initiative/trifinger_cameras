@@ -36,28 +36,26 @@ public:
      * @param device_id_1 device user id of first camera
      * @param device_id_2 likewise, the 2nd's
      * @param device_id_3 and the 3rd's
-     * @param downsample_images If set to true (default), images are
-     *     downsampled to half their original size.
+     * @param downsample_images Not supported anymore.  Must be to ``false``.
      * @param settings Settings for the cameras.
      */
     TriCameraDriver(const std::string& device_id_1,
                     const std::string& device_id_2,
                     const std::string& device_id_3,
-                    bool downsample_images = true,
+                    bool downsample_images = false,
                     Settings settings = Settings());
 
     /**
      * @param camera_calibration_file_1 Calibration file of first camera
      * @param camera_calibration_file_2 likewise, the 2nd's
      * @param camera_calibration_file_3 and the 3rd's
-     * @param downsample_images If set to true (default), images are
-     *     downsampled to half their original size.
+     * @param downsample_images Not supported anymore.  Must be to ``false``.
      * @param settings Settings for the cameras.
      */
     TriCameraDriver(const std::filesystem::path& camera_calibration_file_1,
                     const std::filesystem::path& camera_calibration_file_2,
                     const std::filesystem::path& camera_calibration_file_3,
-                    bool downsample_images = true,
+                    bool downsample_images = false,
                     Settings settings = Settings());
 
     /**

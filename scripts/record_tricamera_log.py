@@ -26,11 +26,6 @@ def main() -> int:
         help="Buffer size of the logger in seconds. Default: %(default)s",
     )
     parser.add_argument(
-        "--no-downsample",
-        action="store_true",
-        help="Disable downsampling in the camera driver",
-    )
-    parser.add_argument(
         "--force", "-f", action="store_true", help="Overwrite existing files."
     )
     parser.add_argument(
@@ -59,11 +54,8 @@ def main() -> int:
     if args.multi_process:
         camera_data = trifinger_cameras.tricamera.MultiProcessData("tricamera", False)
     else:
-        downsample = not args.no_downsample
         camera_data = trifinger_cameras.tricamera.SingleProcessData()
-        camera_driver = trifinger_cameras.tricamera.TriCameraDriver(
-            *camera_names, downsample
-        )
+        camera_driver = trifinger_cameras.tricamera.TriCameraDriver(*camera_names)
         camera_backend = trifinger_cameras.tricamera.Backend(camera_driver, camera_data)
 
     camera_frontend = trifinger_cameras.tricamera.Frontend(camera_data)

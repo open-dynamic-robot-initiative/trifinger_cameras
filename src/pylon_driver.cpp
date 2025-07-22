@@ -115,9 +115,15 @@ void pylon_connect(std::string_view device_user_id,
 }
 
 PylonDriver::PylonDriver(bool downsample_images, Settings settings)
-    : settings_(settings.get_pylon_driver_settings()),
-      downsample_images_(downsample_images)
+    : settings_(settings.get_pylon_driver_settings())
 {
+    if (downsample_images)
+    {
+        throw std::runtime_error(
+            "ERROR: Downsampling images inside PylonDriver is not supported "
+            "anymore.  The `downsample_images` parameter will be removed in a "
+            "future release.\n");
+    }
 }
 
 PylonDriver::PylonDriver(const std::string& device_user_id,
@@ -169,11 +175,6 @@ void PylonDriver::init(const std::string& device_user_id)
         int image_width = Pylon::CIntegerParameter(nodemap, "Width").GetValue();
         int image_height =
             Pylon::CIntegerParameter(nodemap, "Height").GetValue();
-        if (downsample_images_)
-        {
-            image_width /= 2;
-            image_height /= 2;
-        }
 
         // Check if an image size is set in camera_info_ and raise error, in
         // case it doesn't match with the size reported by the camera.
@@ -241,8 +242,8 @@ CameraObservation PylonDriver::get_observation()
         {
             // ensure that the actual image size matches with the expected
             // one
-            if (ptr_grab_result->GetHeight() / 2 != image_frame.height ||
-                ptr_grab_result->GetWidth() / 2 != image_frame.width)
+            if (ptr_grab_result->GetHeight() != image_frame.height ||
+                ptr_grab_result->GetWidth() != image_frame.width)
             {
                 throw std::length_error(
                     fmt::format("{}: Size of grabbed frame ({}x{}) does not "
@@ -254,44 +255,12 @@ CameraObservation PylonDriver::get_observation()
                                 image_frame.height * 2));
             }
 
-            if (downsample_images_)
-            {
-                Pylon::CPylonImage pylon_image_bgr;
-                format_converter_.Convert(pylon_image_bgr, ptr_grab_result);
-
-                // NOTE: the cv::Mat points to the memory of
-                // pylon_image_bgr!
-                cv::Mat image_bgr =
-                    cv::Mat(ptr_grab_result->GetHeight(),
-                            ptr_grab_result->GetWidth(),
-                            CV_8UC3,
-                            (uint8_t*)pylon_image_bgr.GetBuffer());
-
-                // remove a bit of noise
-                cv::medianBlur(image_bgr, image_bgr, 3);
-
-                // resize image
-                constexpr float DOWNSAMPLING_FACTOR = 0.5;
-                cv::resize(image_bgr,
-                           image_bgr,
-                           cv::Size(),
-                           DOWNSAMPLING_FACTOR,
-                           DOWNSAMPLING_FACTOR,
-                           cv::INTER_LINEAR);
-
-                // convert back to BayerBG to not break the API
-                image_frame.image = BGR2BayerBG(image_bgr);
-            }
-            else
-            {
-                // NOTE: the cv::Mat points to the memory of pylon_image!
-                cv::Mat image = cv::Mat(ptr_grab_result->GetHeight(),
-                                        ptr_grab_result->GetWidth(),
-                                        CV_8UC1,
-                                        (uint8_t*)ptr_grab_result->GetBuffer());
-
-                image_frame.image = image.clone();
-            }
+            // NOTE: the cv::Mat points to the memory of pylon_image!
+            cv::Mat image = cv::Mat(ptr_grab_result->GetHeight(),
+                                    ptr_grab_result->GetWidth(),
+                                    CV_8UC1,
+                                    (uint8_t*)ptr_grab_result->GetBuffer());
+            image_frame.image = image.clone();
         }
         else
         {
@@ -308,32 +277,6 @@ CameraObservation PylonDriver::get_observation()
     }
 
     return image_frame;
-}
-
-cv::Mat PylonDriver::downsample_raw_image(const cv::Mat& image)
-{
-    // Downsample resolution by factor 2.  We are operating on the raw
-    // image here, so we need to be careful to preserve the Bayer
-    // pattern. This is done by iterating in steps of 4 over the
-    // original image, keeping the first two rows/columns and discarding
-    // the second two.
-    cv::Mat downsampled(image.cols / 2, image.rows / 2, CV_8UC1);
-    for (int r = 0; r < downsampled.rows; r += 2)
-    {
-        for (int c = 0; c < downsampled.cols; c += 2)
-        {
-            int r2 = r * 2;
-            int c2 = c * 2;
-
-            downsampled.at<uint8_t>(r, c) = image.at<uint8_t>(r2, c2);
-            downsampled.at<uint8_t>(r + 1, c) = image.at<uint8_t>(r2 + 1, c2);
-            downsampled.at<uint8_t>(r, c + 1) = image.at<uint8_t>(r2, c2 + 1);
-            downsampled.at<uint8_t>(r + 1, c + 1) =
-                image.at<uint8_t>(r2 + 1, c2 + 1);
-        }
-    }
-
-    return downsampled;
 }
 
 void PylonDriver::set_camera_configuration()

@@ -34,7 +34,7 @@ PYBIND11_MODULE(py_tricamera_types, m)
              pybind11::arg("camera1"),
              pybind11::arg("camera2"),
              pybind11::arg("camera3"),
-             pybind11::arg("downsample_images") = true)
+             pybind11::arg("downsample_images") = false)
         .def(pybind11::init<const std::filesystem::path&,
                             const std::filesystem::path&,
                             const std::filesystem::path&,
@@ -42,7 +42,7 @@ PYBIND11_MODULE(py_tricamera_types, m)
              pybind11::arg("camera_calibration_file_1"),
              pybind11::arg("camera_calibration_file_2"),
              pybind11::arg("camera_calibration_file_3"),
-             pybind11::arg("downsample_images") = true)
+             pybind11::arg("downsample_images") = false)
         .def_readonly("rate", &TriCameraDriver::rate)
         .def("get_sensor_info", &TriCameraDriver::get_sensor_info)
         .def("get_observation", &TriCameraDriver::get_observation);
