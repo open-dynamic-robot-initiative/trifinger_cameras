@@ -63,7 +63,7 @@ def main() -> int:
 
     log_size = int(camera_info.camera[0].frame_rate_fps * args.buffer_size)
 
-    camera_logger = trifinger_cameras.tricamera.Logger(camera_data, log_size)
+    camera_logger = trifinger_cameras.tricamera.TriCameraLogger(camera_data, log_size)
     camera_logger.start()
     logging.info("Start camera logging.  Press Ctrl+C to stop and save.")
 
@@ -71,8 +71,12 @@ def main() -> int:
     while not signal_handler.has_received_sigint():
         time.sleep(1)
 
-    logging.info("Save recorded camera data to file %s", args.output_path)
-    camera_logger.stop_and_save(str(args.output_path))
+    if args.output_path.suffix in (".hdf5", ".h5"):
+        logging.info("Save recorded camera data to HDF5 file %s", args.output_path)
+        camera_logger.stop_and_save_hdf5(str(args.output_path))
+    else:
+        logging.info("Save recorded camera data to file %s", args.output_path)
+        camera_logger.stop_and_save(str(args.output_path))
 
     camera_backend.shutdown()
 

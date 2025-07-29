@@ -119,6 +119,7 @@ def main() -> int:
             shuffle=True,
         )
 
+        # TODO: need to distinguish between camera timestamps and time series timestamps
         h5.create_dataset(
             "timestamps",
             shape=(n_frames, len(CAMERA_NAMES)),
