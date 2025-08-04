@@ -23,15 +23,21 @@ void TriCameraLogger::stop_and_save_hdf5(const std::string &filename)
     cv::Ptr<cv::hdf::HDF5> h5io = cv::hdf::open(filename);
 
     constexpr int TRICAMERA_LOG_MAGIC = 0x3CDA7A00;
-    constexpr int FORMAT_VERSION = 2;
+    constexpr int FORMAT_VERSION_MAJOR = 2;
+    constexpr int FORMAT_VERSION_MINOR = 1;
     constexpr int NUM_CAMERAS = 3;
+
+    const std::string DS_IMAGES = "images";
+    const std::string DS_CAMERA_TIMESTAMPS = "timestamps";
+    const std::string DS_TIMESERIES_TIMESTAMPS = "sensor_data_timestamps";
 
     // check if buffer is empty
     int image_width = std::get<1>(buffer_[0]).cameras[0].image.cols;
     int image_height = std::get<1>(buffer_[0]).cameras[0].image.rows;
 
     h5io->atwrite(TRICAMERA_LOG_MAGIC, "magic");
-    h5io->atwrite(FORMAT_VERSION, "format_version");
+    h5io->atwrite(FORMAT_VERSION_MAJOR, "format_version");
+    h5io->atwrite(FORMAT_VERSION_MINOR, "format_version_minor");
     h5io->atwrite(NUM_CAMERAS, "num_cameras");
     h5io->atwrite(image_width, "image_width");
     h5io->atwrite(image_height, "image_height");
@@ -73,12 +79,16 @@ void TriCameraLogger::stop_and_save_hdf5(const std::string &filename)
         n_frames, NUM_CAMERAS, image_height, image_width};
     std::vector<int> images_chunks{1, NUM_CAMERAS, image_height, image_width};
     h5io->dscreate(
-        images_size, CV_8UC1, "images", compression_level, images_chunks);
+        images_size, CV_8UC1, DS_IMAGES, compression_level, images_chunks);
 
-    // FIXME: need to distinguish between camera timestamps and time series
-    // stamps
+    // timestamps from the camera observations (when images were captured)
     h5io->dscreate(
-        std::vector<int>{n_frames, NUM_CAMERAS}, CV_64F, "timestamps");
+        std::vector<int>{n_frames, NUM_CAMERAS}, CV_64F, DS_CAMERA_TIMESTAMPS);
+
+    // timestamps from the time series (when observations were added to the
+    // sensor data and thus available to the user)
+    h5io->dscreate(
+        std::vector<int>{n_frames}, CV_64F, DS_TIMESERIES_TIMESTAMPS);
 
     // Write the observations to the HDF5 file
     for (int i_obs = 0; i_obs < n_frames; ++i_obs)
@@ -92,7 +102,9 @@ void TriCameraLogger::stop_and_save_hdf5(const std::string &filename)
         cv::Mat images(
             std::vector<int>{1, NUM_CAMERAS, image_height, image_width},
             CV_8UC1);
-        cv::Mat timestamps(1, NUM_CAMERAS, CV_64F);
+        cv::Mat camera_timestamps(1, NUM_CAMERAS, CV_64F);
+
+        double timeseries_timestamp = std::get<0>(buffer_[i_obs]);
 
         for (int i_cam = 0; i_cam < NUM_CAMERAS; ++i_cam)
         {
@@ -111,11 +123,20 @@ void TriCameraLogger::stop_and_save_hdf5(const std::string &filename)
 
             camera.image.copyTo(images_slice);
 
-            timestamps.at<double>(0, i_cam) = camera.timestamp;
+            camera_timestamps.at<double>(0, i_cam) = camera.timestamp;
         }
 
-        h5io->dswrite(images, "images", std::vector<int>{i_obs, 0, 0, 0});
-        h5io->dswrite(timestamps, "timestamps", std::vector<int>{i_obs, 0});
+        h5io->dswrite(images, DS_IMAGES, std::vector<int>{i_obs, 0, 0, 0});
+        h5io->dswrite(camera_timestamps,
+                      DS_CAMERA_TIMESTAMPS,
+                      std::vector<int>{i_obs, 0});
+
+        // OpenCV's HDF5 interface can only write Mat to datasets, so even
+        // scalar values need to be wrapped in a Mat.
+        cv::Mat timeseries_timestamp_mat(1, 1, CV_64F, timeseries_timestamp);
+        h5io->dswrite(timeseries_timestamp_mat,
+                      DS_TIMESERIES_TIMESTAMPS,
+                      std::vector<int>{i_obs});
     }
 
     h5io->close();
