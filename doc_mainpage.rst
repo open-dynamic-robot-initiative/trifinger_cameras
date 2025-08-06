@@ -10,6 +10,7 @@ The source code is hosted on GitHub_.
    doc/installation.rst
    doc/configuration.rst
    doc/pylon.rst
+   doc/hdf5_log_files.rst
    doc/troubleshooting.rst
 
 .. toctree::

@@ -7,6 +7,7 @@
 #include <pybind11/stl/filesystem.h>
 
 #include <trifinger_cameras/pybullet_tricamera_driver.hpp>
+#include <trifinger_cameras/tricamera_logger.hpp>
 #include <trifinger_cameras/tricamera_observation.hpp>
 #ifdef Pylon_FOUND
 #include <trifinger_cameras/tricamera_driver.hpp>
@@ -72,4 +73,11 @@ PYBIND11_MODULE(py_tricamera_types, m)
              pybind11::arg("render_images") = true)
         .def("get_sensor_info", &PyBulletTriCameraDriver::get_sensor_info)
         .def("get_observation", &PyBulletTriCameraDriver::get_observation);
+
+    pybind11::class_<TriCameraLogger,
+                     std::shared_ptr<TriCameraLogger>,
+                     SensorLogger<TriCameraObservation, TriCameraInfo>>(
+        m, "TriCameraLogger")
+        .def(pybind11::init<typename TriCameraLogger::DataPtr, size_t>())
+        .def("stop_and_save_hdf5", &TriCameraLogger::stop_and_save_hdf5);
 }

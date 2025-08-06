@@ -91,6 +91,7 @@ def main() -> int:
         h5.create_dataset("camera_names", data=[name.encode() for name in CAMERA_NAMES])
         h5.attrs["magic"] = TRICAMERA_LOG_MAGIC
         h5.attrs["format_version"] = 2
+        h5.attrs["format_version_minor"] = 1
         h5.attrs["num_cameras"] = len(CAMERA_NAMES)
         h5.attrs["image_width"] = img_shape[1]
         h5.attrs["image_height"] = img_shape[0]
@@ -119,16 +120,27 @@ def main() -> int:
             shuffle=True,
         )
 
+        # timestamps from the camera observations
         h5.create_dataset(
             "timestamps",
             shape=(n_frames, len(CAMERA_NAMES)),
             dtype=np.double,
         )
 
-        for i_obs, observation in enumerate(log_reader.data):
+        # timestamps from the sensor data time series
+        h5.create_dataset(
+            "sensor_data_timestamps",
+            shape=(n_frames,),
+            dtype=np.double,
+        )
+
+        for i_obs, (observation, data_timestamp) in enumerate(
+            zip(log_reader.data, log_reader.timestamps)
+        ):
             cameras = observation.cameras
             h5["images"][i_obs] = [camera.image for camera in cameras]
             h5["timestamps"][i_obs] = [camera.timestamp for camera in cameras]
+            h5["sensor_data_timestamps"][i_obs] = data_timestamp
 
     return 0
 

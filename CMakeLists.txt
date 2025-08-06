@@ -224,6 +224,20 @@ ament_target_dependencies(camera_calibration_parser
 list(APPEND install_targets camera_calibration_parser)
 
 
+add_library(tricamera_logger
+    src/tricamera_logger.cpp
+)
+target_include_directories(tricamera_logger PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(tricamera_logger
+    robot_interfaces::robot_interfaces
+    ${OpenCV_LIBRARIES}
+)
+list(APPEND install_targets tricamera_logger)
+
+
 add_executable(load_camera_config_test src/load_camera_config_test.cpp)
 target_include_directories(load_camera_config_test PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -248,6 +262,7 @@ add_pybind11_module(py_tricamera_types srcpy/py_tricamera_types.cpp
         ${OpenCV_LIBRARIES}
         ${tricamera_driver}
         pybullet_tricamera_driver
+        tricamera_logger
 )
 
 

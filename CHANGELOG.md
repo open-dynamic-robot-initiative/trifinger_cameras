@@ -28,6 +28,10 @@
   viewing.
 - Add clipping indicator to `tricamera_log_viewer` (meant as an aid to find good
   exposure settings for the cameras).
+- `TriCameraLogger` which extends the generic `robot_interfaces::SensorLogger` by a
+  method `stop_and_save_hdf5`, which, as the name says, saves the data to an HDF5 file
+  instead of the built-in format.  It is recommended to use HDF5 when possible as it
+  is a standardized format that can be read without needing to depend on our code.
 
 ### Removed
 - Obsolete script `verify_calibration.py`
