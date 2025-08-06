@@ -190,3 +190,23 @@ Images will be saved in the output directory using the following structure:
 
 
 See ``--help`` for available options.
+
+
+.. _executable_tricamera_log_to_hdf5:
+
+tricamera_log_to_hdf5
+=====================
+
+Convert a TriCamera log file from the primitive binary dump format (produced by
+:cpp:func:`robot_interfaces::SensorLogger::stop_and_save`) to HDF5.  See
+:doc:`hdf5_log_files` for more information on the HDF5 structure.
+
+Requires the camera calibration parameter files as the parameters are included in the
+HDF5 file but not in the primitive dump.
+
+Usage example:
+
+.. code-block::
+
+    tricamera_log_to_hdf5 -l camera_data.dat -c camera{60,180,300}_cropped.yml \
+        -o camera_data.hdf5
