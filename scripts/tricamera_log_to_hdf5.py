@@ -6,10 +6,10 @@ import pathlib
 import sys
 
 import h5py
-import numpy as np
 
-from trifinger_cameras import CAMERA_NAMES, TRICAMERA_LOG_MAGIC, tricamera
+from trifinger_cameras import CAMERA_NAMES, tricamera
 from trifinger_cameras.camera_calibration_file import CameraCalibrationFile
+from trifinger_cameras.hdf5 import write_tricamera_hdf5
 
 
 def main() -> int:
@@ -57,7 +57,7 @@ def main() -> int:
         camera_params.append(CameraCalibrationFile(calib_file))
 
     # Verify camera names match expected order
-    for param, expected_name in zip(camera_params, CAMERA_NAMES):
+    for param, expected_name in zip(camera_params, CAMERA_NAMES, strict=True):
         if param["camera_name"] != expected_name:
             print(
                 f"Expected camera {expected_name} but got {param['camera_name']}",
@@ -87,60 +87,12 @@ def main() -> int:
             return 1
 
     with h5py.File(args.outfile, "w") as h5:
-        # create datasets for images and timestamps
-        h5.create_dataset("camera_names", data=[name.encode() for name in CAMERA_NAMES])
-        h5.attrs["magic"] = TRICAMERA_LOG_MAGIC
-        h5.attrs["format_version"] = 2
-        h5.attrs["format_version_minor"] = 1
-        h5.attrs["num_cameras"] = len(CAMERA_NAMES)
-        h5.attrs["image_width"] = img_shape[1]
-        h5.attrs["image_height"] = img_shape[0]
-
-        # Add camera calibration parameters
-        calib_group = h5.create_group("camera_info")
-        for i, params in enumerate(camera_params):
-            cam_group = calib_group.create_group(CAMERA_NAMES[i])
-            cam_group.create_dataset(
-                "camera_matrix", data=params.get_array("camera_matrix")
-            )
-            cam_group.create_dataset(
-                "distortion_coefficients",
-                data=params.get_array("distortion_coefficients"),
-            )
-            cam_group.create_dataset(
-                "tf_world_to_camera", data=params.get_array("tf_world_to_camera")
-            )
-
-        h5.create_dataset(
-            "images",
-            shape=(n_frames, len(CAMERA_NAMES), img_shape[0], img_shape[1]),
-            dtype=np.uint8,
-            chunks=(1, len(CAMERA_NAMES), img_shape[0], img_shape[1]),
-            compression="gzip",
-            shuffle=True,
+        write_tricamera_hdf5(
+            h5,
+            camera_params,
+            n_frames,
+            zip(log_reader.data, log_reader.timestamps, strict=True),
         )
-
-        # timestamps from the camera observations
-        h5.create_dataset(
-            "timestamps",
-            shape=(n_frames, len(CAMERA_NAMES)),
-            dtype=np.double,
-        )
-
-        # timestamps from the sensor data time series
-        h5.create_dataset(
-            "sensor_data_timestamps",
-            shape=(n_frames,),
-            dtype=np.double,
-        )
-
-        for i_obs, (observation, data_timestamp) in enumerate(
-            zip(log_reader.data, log_reader.timestamps)
-        ):
-            cameras = observation.cameras
-            h5["images"][i_obs] = [camera.image for camera in cameras]
-            h5["timestamps"][i_obs] = [camera.timestamp for camera in cameras]
-            h5["sensor_data_timestamps"][i_obs] = data_timestamp
 
     return 0
 
