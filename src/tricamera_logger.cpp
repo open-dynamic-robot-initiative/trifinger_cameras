@@ -133,7 +133,7 @@ void TriCameraLogger::stop_and_save_hdf5(const std::string &filename)
 
         // OpenCV's HDF5 interface can only write Mat to datasets, so even
         // scalar values need to be wrapped in a Mat.
-        cv::Mat timeseries_timestamp_mat(1, 1, CV_64F, timeseries_timestamp);
+        cv::Mat timeseries_timestamp_mat(1, 1, CV_64F, &timeseries_timestamp);
         h5io->dswrite(timeseries_timestamp_mat,
                       DS_TIMESERIES_TIMESTAMPS,
                       std::vector<int>{i_obs});
