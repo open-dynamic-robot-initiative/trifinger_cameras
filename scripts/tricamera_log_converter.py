@@ -2,6 +2,7 @@
 """
 Convert images from a TriCameraObservation log file to a video file.
 """
+
 import argparse
 import cv2
 

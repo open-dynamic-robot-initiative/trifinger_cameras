@@ -6,6 +6,7 @@ between either real or simulated images or blend them together.  This can be use
 validate how good the camera calibration is by checking how well the rendered images
 match with the real ones.
 """
+
 import argparse
 import pathlib
 
@@ -13,7 +14,6 @@ import numpy as np
 import cv2  # type: ignore
 
 from trifinger_simulation import sim_finger, camera
-
 
 SLIDER_MAX = 100
 g_slider_value = 0

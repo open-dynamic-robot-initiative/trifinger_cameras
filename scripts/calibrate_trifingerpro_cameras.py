@@ -17,7 +17,6 @@ from ruamel.yaml import YAML
 from trifinger_cameras import utils
 from trifinger_cameras.charuco_board_handler import CharucoBoardHandler
 
-
 BOARD_SIZE_X = 5
 BOARD_SIZE_Y = 10
 BOARD_SQUARE_SIZE = 0.04

@@ -2,13 +2,13 @@
 """Script for generating a Charuco Board, calibrating the camera with it and
 detecting it in images and camera streams.
 """
+
 import os
 import glob
 import argparse
 
 from trifinger_cameras.charuco_board_handler import CharucoBoardHandler
 from trifinger_cameras.camera_calibration_file import CameraCalibrationFile
-
 
 BOARD_SIZE_X = 5
 BOARD_SIZE_Y = 10

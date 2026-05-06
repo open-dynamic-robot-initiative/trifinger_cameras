@@ -12,7 +12,6 @@ import yaml
 import os
 import glob
 
-
 BOARD_SIZE_X = 5
 BOARD_SIZE_Y = 10
 BOARD_SQUARE_SIZE = 0.04

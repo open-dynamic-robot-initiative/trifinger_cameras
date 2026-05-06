@@ -3,7 +3,6 @@
 from . import py_camera_types as camera  # noqa: F401
 from . import py_tricamera_types as tricamera  # noqa: F401
 
-
 #: Names of the TriFinger cameras in the order in which they are usually handled.
 CAMERA_NAMES = ("camera60", "camera180", "camera300")
 

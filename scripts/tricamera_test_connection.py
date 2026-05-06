@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Try to connect to the cameras one by one to detect failures."""
+
 import sys
 
 import trifinger_cameras

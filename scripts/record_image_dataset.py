@@ -8,6 +8,7 @@ By default the three-camera-setup of the TriFinger platform is used but it can
 be changed to using a single camera either via Pylon or OpenCV with the
 `--driver` argument.
 """
+
 import argparse
 import os
 
