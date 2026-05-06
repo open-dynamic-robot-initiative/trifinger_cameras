@@ -2,6 +2,7 @@
 """
 Play back CameraObservations from a log file.
 """
+
 import argparse
 import cv2
 

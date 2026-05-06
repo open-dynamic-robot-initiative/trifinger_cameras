@@ -18,6 +18,7 @@ def test_rodrigues_to_matrix():
 
     np.testing.assert_array_almost_equal(utils.rodrigues_to_matrix(rotvec), mat)
 
+
 def test_convert_image():
     # NOTE: this is not testing if the result is correct but simply uses
     # the result of an old call of the function to verify that the

@@ -8,7 +8,6 @@ import cv2
 import numpy as np
 import tabulate
 
-
 if typing.TYPE_CHECKING:
     from trifinger_cameras.py_tricamera_types import TriCameraInfo
 
